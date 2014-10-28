@@ -1,14 +1,14 @@
 #pragma once
 #include <fstream>
 #include <string>
-#include "DataSet.h"
+#include "BasicDataSet.h"
 
 class DataWriter
 {
 public:
 	DataWriter(std::string filePath);
 	~DataWriter();
-	void write(DataSet& data);
+	void write(BasicDataSet& data);
 private:
 	std::ofstream file;
 };

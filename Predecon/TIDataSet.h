@@ -3,7 +3,7 @@
 #include <memory>
 #include <algorithm>
 #include "Point.h"
-#include "DataSet.h"
+#include "BasicDataSet.h"
 #include "measures.h"
 #include <cmath>
 
@@ -11,7 +11,7 @@ struct TIDataSet
 {
 	const double k = 1000.0;
 
-	std::shared_ptr<DataSet> dataSet;
+	std::shared_ptr<BasicDataSet> dataSet;
 	std::vector<double> distances;
 	Point relative;
 	measures::Measure measure;
@@ -26,7 +26,7 @@ struct TIDataSet
 	double delta;
 	int lambda;
 
-	TIDataSet(std::shared_ptr<DataSet> dataSet, Point relative, double eps, int mi, double delta, int lambda) : 
+	TIDataSet(std::shared_ptr<BasicDataSet> dataSet, Point relative, double eps, int mi, double delta, int lambda) : 
 		dataSet(dataSet), 
 		distances(dataSet->size()),
 		relative(relative),

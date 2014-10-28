@@ -9,7 +9,7 @@ DataWriter::~DataWriter() {
 	if(file.is_open()) file.close();
 }
 
-void DataWriter::write(DataSet& data) {
+void DataWriter::write(BasicDataSet& data) {
 	for (Point& p : data)
 		file << p.toString() << std::endl;
 }

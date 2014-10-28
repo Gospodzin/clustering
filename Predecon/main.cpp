@@ -15,7 +15,7 @@ int main()
 {
 	clock_t begin = clock();
 
-	shared_ptr<DataSet> data = DataLoader("test_points.csv").load();
+	shared_ptr<BasicDataSet> data = DataLoader("test_points.csv").load();
 	
 
 	clock_t end = clock();

@@ -2,14 +2,14 @@
 #include <string>
 #include <fstream>
 #include <memory>
-#include "DataSet.h"
+#include "BasicDataSet.h"
 
 class DataLoader
 {
 public:
 	DataLoader(std::string filePath);
 	~DataLoader();
-	std::shared_ptr<DataSet> load();
+	std::shared_ptr<BasicDataSet> load();
 private:
 	Point strToPoint(const std::string& line);
 	int readDimsCount();

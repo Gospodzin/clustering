@@ -31,10 +31,10 @@ int DataLoader::readDimsCount()
 	return std::count(line.begin(), line.end(), ' ') + 1;
 }
 
-std::shared_ptr<DataSet> DataLoader::load() {
+std::shared_ptr<BasicDataSet> DataLoader::load() {
 	std::string dataString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::istrstream dataStream(dataString.c_str(), dataString.length());
-	std::shared_ptr<DataSet> data(new DataSet(std::count(dataString.begin(), dataString.end(), '\n')));
+	std::shared_ptr<BasicDataSet> data(new BasicDataSet(std::count(dataString.begin(), dataString.end(), '\n')));
 	std::string line;
 	while (std::getline(dataStream, line))
 		data->push_back(strToPoint(line));
