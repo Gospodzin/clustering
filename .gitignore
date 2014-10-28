@@ -5,6 +5,15 @@
 *.suo
 *.user
 *.sln.docstates
+*.vcxproj
+*.vcxproj.filters
+*.tlog
+*.idb
+*.exp
+*.dll
+*.lib
+*.sln
+
 
 # Build results
 [Dd]ebug/
