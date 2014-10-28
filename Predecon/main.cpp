@@ -15,9 +15,10 @@ int main()
 {
 	clock_t begin = clock();
 
-	shared_ptr<BasicDataSet> data = DataLoader("test_points.csv").load();
-	
+	//shared_ptr<BasicDataSet> data = DataLoader("test_points.csv").load();
 
+	BasicDataSet d(2);
+	
 	clock_t end = clock();
 	double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
 	cout << elapsed_secs << endl;;

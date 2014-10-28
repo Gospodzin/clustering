@@ -7,7 +7,7 @@
 #include "measures.h"
 #include <cmath>
 
-struct TIDataSet
+struct TIDataSet : DataSet
 {
 	const double k = 1000.0;
 
@@ -75,14 +75,14 @@ struct TIDataSet
 		return *sortedData[n];
 	}
 
-	inline std::vector<Point*>::iterator begin()
+	inline std::vector<Point>::iterator begin()
 	{
-		return sortedData.begin();
+		return dataSet->begin();
 	}
 
-	inline std::vector<Point*>::iterator end()
+	inline std::vector<Point>::iterator end()
 	{
-		return sortedData.end();
+		return dataSet->end();
 	}
 
 	inline int size() {
