@@ -3,28 +3,11 @@
 
 struct BasicDataSet : DataSet
 {
-	std::vector<Point> data;
-	
-	BasicDataSet(int n) { 
-		data.reserve(n); 
-	}
+	BasicDataSet(std::vector<Point>* data) : DataSet(data) {}
 
-	inline std::vector<Point>::iterator begin() {
-		return data.begin();
-	}
-
-	inline std::vector<Point>::iterator end() {
-		return data.end();
-	}
-
-	inline Point& operator[](const int& n) {
-		return data[n];
-	}
-
-	inline std::vector<Point*> regionQuery(const int& pointOrderId, const double& eps, measures::Measure measure) {
+	std::vector<Point*> regionQuery(const Point& target, const double& eps, measures::Measure measure) {
 		std::vector<Point*> neighbours;
-		Point& target = data[pointOrderId];
-		for (Point& p : data)
+		for (Point& p : *data)
 			if (measure(target, p) <= eps)
 				neighbours.push_back(&p);
 		return neighbours;
