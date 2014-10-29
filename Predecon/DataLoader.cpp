@@ -1,14 +1,9 @@
 #include "DataLoader.h"
 #include <boost/tokenizer.hpp>
-#include <sstream>
-#include <algorithm>
 #include <strstream>
-#include <iterator>
-#include <memory>
 
 DataLoader::DataLoader(std::string filePath) : file(filePath), dimsCount(readDimsCount()), idCarrier(0) {
 }
-
 
 DataLoader::~DataLoader() {
 	file.close();

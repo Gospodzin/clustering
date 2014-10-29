@@ -1,9 +1,5 @@
 #pragma once
 #include "Point.h"
-#include <numeric>
-#include <algorithm>
-#include <functional>
-
 
 namespace measures{
 	typedef  double(*Measure)(const Point&, const Point&);

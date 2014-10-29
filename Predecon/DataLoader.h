@@ -1,8 +1,7 @@
 #pragma once
 #include <string>
 #include <fstream>
-#include <memory>
-#include "BasicDataSet.h"
+#include "Point.h"
 
 class DataLoader
 {

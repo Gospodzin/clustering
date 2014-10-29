@@ -1,7 +1,8 @@
 #pragma once
 #include <fstream>
 #include <string>
-#include "BasicDataSet.h"
+#include <vector>
+#include "Point.h"
 
 class DataWriter
 {
