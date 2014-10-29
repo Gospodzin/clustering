@@ -1,3 +1,4 @@
+#pragma once
 #include "DataSet.h"
 #include <stack>
 
