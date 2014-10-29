@@ -1,5 +1,6 @@
 #pragma once
 #include "DataSet.h"
+#include <algorithm>
 
 struct TIDataSet : DataSet
 {

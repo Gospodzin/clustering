@@ -1,11 +1,11 @@
 #pragma once
-#include "DataSet.h"
 #include <stack>
 
+template <typename T>
 class Predecon
 {
 public:
-	Predecon(DataSet* data, measures::Measure measure, double eps, int mi, double delta, int lambda, double k=1000.0) :
+	Predecon(T* data, measures::Measure measure, double eps, int mi, double delta, int lambda, double k = 1000.0) :
 		data(data), measure(measure), eps(eps), mi(mi), delta(delta), lambda(lambda),	k(k),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
 		allVariances(data->size()),	pDims(data->size()), prefVectors(data->size()) {
@@ -40,8 +40,7 @@ public:
 		}
 	}
 
-private:
-	DataSet* const data;
+	T* const data;
 	const measures::Measure measure;
 	const double eps;
 	const int mi;
@@ -56,6 +55,7 @@ private:
 	std::vector<std::vector<double> > prefVectors;
 	std::vector<std::vector<Point*> > prefNeighbourhoods;
 
+private:
 	void calcNeighbourhoods() {
 		for (int i = 0; i < data->size(); ++i) {
 			neighbourhoods[i] = data->regionQuery((*data)[i], eps, measure);
