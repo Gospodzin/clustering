@@ -31,10 +31,12 @@ int DataLoader::readDimsCount()
 	return std::count(line.begin(), line.end(), ' ') + 1;
 }
 
-std::shared_ptr<BasicDataSet> DataLoader::load() {
+std::vector<Point>* DataLoader::load() {
 	std::string dataString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
 	std::istrstream dataStream(dataString.c_str(), dataString.length());
-	std::shared_ptr<BasicDataSet> data(new BasicDataSet(std::count(dataString.begin(), dataString.end(), '\n')));
+	int pointsCounts = std::count(dataString.begin(), dataString.end(), '\n');
+	std::vector<Point>* data = new std::vector<Point>();
+	data->reserve(pointsCounts);
 	std::string line;
 	while (std::getline(dataStream, line))
 		data->push_back(strToPoint(line));

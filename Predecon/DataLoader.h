@@ -9,7 +9,7 @@ class DataLoader
 public:
 	DataLoader(std::string filePath);
 	~DataLoader();
-	std::shared_ptr<BasicDataSet> load();
+	std::vector<Point>* load();
 private:
 	Point strToPoint(const std::string& line);
 	int readDimsCount();

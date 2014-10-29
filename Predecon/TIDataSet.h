@@ -1,11 +1,7 @@
 #pragma once
-#include <vector>
-#include <memory>
 #include <algorithm>
-#include "Point.h"
-#include "BasicDataSet.h"
-#include "measures.h"
 #include <cmath>
+#include "DataSet.h"
 
 struct TIDataSet : DataSet
 {

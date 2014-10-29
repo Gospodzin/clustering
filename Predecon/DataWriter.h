@@ -8,7 +8,7 @@ class DataWriter
 public:
 	DataWriter(std::string filePath);
 	~DataWriter();
-	void write(BasicDataSet& data);
+	void write(std::vector<Point>* data);
 private:
 	std::ofstream file;
 };

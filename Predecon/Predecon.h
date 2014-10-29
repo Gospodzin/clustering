@@ -1,44 +1,26 @@
-#include "TIDataSet.h"
+#include "DataSet.h"
 #include <stack>
 
 class Predecon
 {
 public:
-	const double k = 1000.0;
-
-	std::vector<std::vector<Point*> > neighbourhoods;
-	std::vector<std::vector<Point*> > prefNeighbourhoods;
-	std::vector<std::vector<double> > allVariances;
-	std::vector<int> pDims;
-	std::vector<std::vector<double> > prefVectors;
-	double eps;
-	int mi;
-	double delta;
-	int lambda;
-
-	std::shared_ptr<TIDataSet> dataSetP;
-	TIDataSet& dataSet;
-
-	Predecon(std::shared_ptr<TIDataSet> dataSet) : 
-		dataSetP(dataSet), 
-		dataSet(*dataSet), 
-		cid(NOISE), 
-		neighbourhoods(dataSet->size()),
-		prefNeighbourhoods(dataSet->size()),
-		allVariances(dataSet->size()),
-		pDims(dataSet->size()),
-		prefVectors(dataSet->size()) {
+	Predecon(DataSet* data, measures::Measure measure, double eps, int mi, double delta, int lambda, double k=1000.0) :
+		data(data), measure(measure), eps(eps), mi(mi), delta(delta), lambda(lambda),	k(k),
+		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
+		allVariances(data->size()),	pDims(data->size()), prefVectors(data->size()) {
+		calcNeighbourhoods();
+		calcAllVariances();
+		calcPDims();
+		calcPrefVectors();
+		initialComputation();
 	}
 	
 	void compute() {
-		for (int i = 0; i < dataSet.size(); ++i) {
-			if (dataSet[i].cid == NONE) {
+		for (int i = 0; i < data->size(); ++i) {
+			if ((*data)[i].cid == NONE) {
 				std::stack<Point*> seeds;
-				//core point
-				Point& core = dataSet[i];
-				// Twórz grupê na podstawie pierwszego dotychczas niesklasyfikowanego punktu p
-				core.cid = nextCid();
-				// wstaw punkt p do seeds;
+				Point& core = (*data)[i];
+				core.cid = ++curCid;
 				seeds.push(&core);
 				while (!seeds.empty()) {
 					Point& point = *seeds.top();
@@ -46,11 +28,11 @@ public:
 					auto& prefNeighbourhood = prefNeighbourhoods[point.id];
 					for (Point* p : prefNeighbourhood) {
 						if (p->cid == NONE) {
-							p->cid = curCid();
+							p->cid = curCid;
 							seeds.push(p);
 						}
 						else if (pDims[p->id] <= lambda)
-							p->cid = curCid();
+							p->cid = curCid;
 					}
 				}
 			}
@@ -58,17 +40,24 @@ public:
 	}
 
 private:
-	inline int& nextCid() {
-		return ++cid;
-	}
-	inline int& curCid() {
-		return cid;
-	}
-	int cid;
+	DataSet* const data;
+	const measures::Measure measure;
+	const double eps;
+	const int mi;
+	const double delta;
+	const int lambda;
+	const double k;
 
-	void calcNeighbourhoods(double eps) {
-		for (int i = 0; i < dataSet.size(); ++i) {
-			neighbourhoods[dataSet[i].id] = regionQuery(i);
+	int curCid;
+	std::vector<std::vector<Point*> > neighbourhoods;
+	std::vector<std::vector<double> > allVariances;
+	std::vector<int> pDims;
+	std::vector<std::vector<double> > prefVectors;
+	std::vector<std::vector<Point*> > prefNeighbourhoods;
+
+	void calcNeighbourhoods() {
+		for (int i = 0; i < data->size(); ++i) {
+			neighbourhoods[i] = data->regionQuery((*data)[i], eps, measure);
 		}
 	}
 
@@ -114,7 +103,7 @@ private:
 		auto satisfiesLambda = [&](Point& p) -> bool {return pDims[p.id] <= lambda; };
 
 		for (int i = 0; i < data->size(); ++i) {
-			Point& point = data->at(i);
+			Point& point = (*data)[i];
 			if (!satisfiesMi(neighbourhoods[point.id]) || !satisfiesLambda(point))
 				point.cid = NOISE;
 			else {
