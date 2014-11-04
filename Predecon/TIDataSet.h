@@ -8,7 +8,7 @@ namespace referenceSelectors {
 	Point max(std::vector<Point>& data) {
 		Point reference = data[0];
 		for (Point& p : data)
-			for (int i = 0; i < p.size(); ++i) 
+			for (int i = 0; i < (int)p.size(); ++i)
 				if (p[i] > reference[i])
 					reference[i] = p[i];
 			
@@ -19,14 +19,15 @@ namespace referenceSelectors {
 struct TIDataSet : DataSet
 {
 	Point reference;
-	measures::Measure measure;
 	std::vector<Point*> sortedData;
 	std::vector<double> distances;
 	std::vector<int> idToSortedId;
 
-	TIDataSet(std::vector<Point>* data, Point reference, measures::Measure measure) :
-		DataSet(data), reference(reference), measure(measure),
+	TIDataSet(std::vector<Point>* data, measures::Measure measure, Point reference) :
+		DataSet(data, measure), reference(reference),
 		sortedData(data->size()), distances(data->size()), idToSortedId(data->size()) {
+		LOG("Creating TIDataSet...")
+		TS();
 		// init
 		for (int i = 0; i < size(); ++i) sortedData[i] = &data->at(i);
 		// calculate distances
@@ -34,26 +35,27 @@ struct TIDataSet : DataSet
 		// sort data
 		std::sort(sortedData.begin(), sortedData.end(), [&](const Point* p1, const Point* p2) -> bool {return distances[p1->id] < distances[p2->id]; });
 		// create id to sortedId mapping
-		for (int i = 0; i < sortedData.size(); i++) idToSortedId[sortedData[i]->id] = i;
+		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i]->id] = i;
+		TP();
 	}
 
-	TIDataSet(std::vector<Point>* data, referenceSelectors::ReferenceSelector referenceSelector, measures::Measure measure) : TIDataSet(data, referenceSelector(*data), measure) {}
+	TIDataSet(std::vector<Point>* data, measures::Measure measure, referenceSelectors::ReferenceSelector referenceSelector) : TIDataSet(data, measure, referenceSelector(*data)) {}
 
-	std::vector<Point*> regionQuery(const Point& target, const double& eps, measures::Measure sortingMeasureIsChosen) {
+	std::vector<Point*> regionQuery(const Point& target, const double& eps) {
 		std::vector<Point*> neighbours;
 		int sortedId = idToSortedId[target.id];
 
 		//search upwards
 		for (int i = sortedId; i >= 0 && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; --i) {
 			Point& p = *sortedData[i];
-			if (this->measure(target, p) <= eps)
+			if (measure(target, p) <= eps)
 				neighbours.push_back(&p);
 		}
 
 		//search downwards
-		for (int i = sortedId + 1; i < data->size() && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; ++i) {
+		for (int i = sortedId + 1; i < (int)data->size() && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; ++i) {
 			Point& p = *sortedData[i];
-			if (this->measure(target, p) <= eps)
+			if (measure(target, p) <= eps)
 				neighbours.push_back(&p);
 		}
 

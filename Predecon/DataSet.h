@@ -2,12 +2,15 @@
 #include <memory>
 #include "Point.h"
 #include "measures.h"
+#include "logging.h"
 
 struct DataSet
 {
 	std::shared_ptr<std::vector<Point> > data;
+	measures::Measure measure;
 
-	DataSet(std::vector<Point>* data) : data(std::shared_ptr<std::vector<Point> >(data)) {}
+	DataSet(std::vector<Point>* data, measures::Measure measure) 
+		: data(std::shared_ptr<std::vector<Point> >(data)), measure(measure) {}
 
 	int size() {
 		return data->size();
@@ -25,6 +28,6 @@ struct DataSet
 		return data->at(n);
 	}
 	
-	std::vector<Point*> regionQuery(const Point& target, const double& eps, measures::Measure measure);
+	std::vector<Point*> regionQuery(const Point& target, const double& eps);
 };
 

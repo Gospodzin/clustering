@@ -1,40 +1,24 @@
 #include <iostream>
 #include <chrono>
 #include <boost/tokenizer.hpp>
-#include "DataIO.h"
+#include "dataio.h"
 #include "TIDataSet.h"
 #include "measures.h"
 #include "Predecon.h"
-
+#include "logging.h"
+#include "UI.h"
 
 using namespace std;
 
-clock_t beginTick;
-
-static void tS() {
-	beginTick = clock();
-}
-
-static void tP() {
-	printf("%f\n", double(clock() - beginTick) / CLOCKS_PER_SEC);
-}
 
 int main()
 {
-	
-		tS();
-		vector<Point>* data = DataLoader("small.txt").load();
-		tP();
-		tS();
-		TIDataSet dataSet(data, referenceSelectors::max, measures::euclideanDistance);
-		Predecon<TIDataSet> predecon(&dataSet, measures::euclideanDistance, 400.0, 3, 1.8, 999999999);
-		tP();
-		tS();
-		predecon.compute();
-		tP();
-		tS();
-		DataWriter("out.txt").write(data);
-		tP();
- return 0;
+	//UI().run();
+	vector<Point>* data = DataLoader("a2.txt").load();
+	TIDataSet dataSet(data, measures::euclideanDistanceSquared, referenceSelectors::max);
+	Predecon<TIDataSet> predecon(&dataSet, measures::euclideanDistanceSquared, 400.0*400.0, 3, 1.8, 999999999);
+	predecon.compute();
+	DataWriter("out.txt").write(data);
+	return 0;
 }
 
