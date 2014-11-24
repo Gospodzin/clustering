@@ -11,6 +11,7 @@ public:
 	DataWriter(std::string filePath);
 	~DataWriter();
 	void write(std::vector<Point>* data);
+	void writeClusterIds(std::vector<Point>* data);
 private:
 	std::ofstream file;
 };

@@ -17,3 +17,11 @@ void DataWriter::write(std::vector<Point>* data) {
 		file << p.toString() << std::endl;
 	TP();
 }
+
+void DataWriter::writeClusterIds(std::vector<Point>* data) {
+	LOG("Writing cluster ids to file...");
+	TS();
+	for (Point& p : *data)
+		file << p.cid << std::endl;
+	TP();
+}
