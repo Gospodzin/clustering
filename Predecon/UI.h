@@ -32,8 +32,8 @@ public:
 		measures::Measure measure;
 		measures::PrefMeasure prefMeasure;
 		if (measureId == 1) {
-			measure = measures::euclideanDistanceSquared;
-			prefMeasure = measures::euclideanDistanceSquared;
+			measure = measures::euclideanDistance;
+			prefMeasure = measures::euclideanDistance;
 		}
 		else {
 			measure = measures::manhattanDistance;
@@ -56,8 +56,6 @@ public:
 		int lambda;
 		std::cin >> lambda;
 
-		if (measureId == 1) eps *= eps;
-
 		if (algorithmId == 1)
 			performTIPredecon(filePath, measure, prefMeasure, eps, mi, delta, lambda);
 		else
@@ -76,7 +74,7 @@ private:
 		predecon.compute();
 		double time = double((clock() - t)) / CLOCKS_PER_SEC;
 		char outPath[1000];
-		sprintf_s(outPath, "%f_%d_%f_%d_%s", sqrt(eps), mi, delta, lambda, fileName);
+		sprintf_s(outPath, "%f_%d_%f_%d_%s", sqrt(eps), mi, delta, lambda, fileName.c_str());
 		DataWriter("out_"+std::string(outPath)).writeClusterIds(data);
 		StatsCollector sc;
 		sc.collect(*data);

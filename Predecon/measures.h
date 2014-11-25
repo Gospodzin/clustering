@@ -6,22 +6,22 @@ namespace measures{
 	typedef  double(*PrefMeasure)(const Point&, const Point&, std::vector<double>& prefVector);
 
 
-	 double euclideanDistanceSquared(const Point& p1, const Point& p2) {
+	 double euclideanDistance(const Point& p1, const Point& p2) {
 		double res = 0;
 		for (int i = 0; i < (int)(int)p1.size(); ++i) {
 			double diff = p1[i] - p2[i];
 			res += diff*diff;
 		}
-		return res;
+		return sqrt(res);
 	}
 
-	double euclideanDistanceSquared(const Point& p1, const Point& p2, std::vector<double>& prefVector) {
+	double euclideanDistance(const Point& p1, const Point& p2, std::vector<double>& prefVector) {
 		double res = 0;
 		for (int i = 0; i < (int)p1.size(); ++i) {
 			double diff = p1[i] - p2[i];
 			res += prefVector[i] * diff * diff;
 		}
-		return res;
+		return sqrt(res);
 	}
 
 

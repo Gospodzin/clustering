@@ -30,22 +30,25 @@ namespace Microsoft
 	}
 }
 
+
 namespace Testing
 {		
 	TEST_CLASS(UnitTest1)
 	{
 	public:
+		std::string path = "../test_data/";
+
 		
 		TEST_METHOD(fileOpen)
 		{
-			std::ifstream file("test.txt");
+			std::ifstream file(path + "test.txt");
 			Assert::IsTrue(file.is_open());
 			file.close();
 		}
 
 		TEST_METHOD(loadData)
 		{
-			std::vector<Point>* ds = DataLoader("test.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test.txt").load();
 			Assert::AreEqual(3, (int)ds->size());
 			Assert::AreEqual(2, (int)ds->at(0).size());
 			Assert::AreEqual(4.2, ds->at(1)[1]);
@@ -59,7 +62,7 @@ namespace Testing
 			Point rel2(2, 0);
 			rel2.push_back(3);
 			rel2.push_back(4);
-			Assert::AreEqual(std::sqrt(8), measures::euclideanDistance(rel1, rel2));
+			Assert::AreEqual(sqrt(8.0), measures::euclideanDistance(rel1, rel2));
 		}
 
 		TEST_METHOD(manhattanDist)
@@ -75,11 +78,11 @@ namespace Testing
 
 		TEST_METHOD(sortTIData)
 		{
-			std::vector<Point>* ds = DataLoader("test.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test.txt").load();
 			Point rel(2, 0);
 			rel.push_back(4.2);
 			rel.push_back(5.2);
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Assert::AreEqual(1, ti.sortedData[0]->id);
 			Assert::AreEqual(2, ti.sortedData[1]->id);
 			Assert::AreEqual(0, ti.sortedData[2]->id);
@@ -87,9 +90,9 @@ namespace Testing
 		
 		TEST_METHOD(tICalcNeighbourhoods)
 		{
-			std::vector<Point>* ds = DataLoader("test2.txt").load(); 
+			std::vector<Point>* ds = DataLoader(path + "test2.txt").load();
 			Point rel = ds->at(6); // 3 1
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Predecon<TIDataSet> predecon(&ti, measures::euclideanDistance, 2.3, 3, -1.0, 999999999);
 			auto nbh = predecon.neighbourhoods[6];
 			Point* n1 = ti.sortedData[3]; // 2 3
@@ -107,9 +110,9 @@ namespace Testing
 
 		TEST_METHOD(tICalcVariances)
 		{
-			std::vector<Point>* ds = DataLoader("test2.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test2.txt").load();
 			Point rel = ds->at(6); // 3 1
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Predecon<TIDataSet> predecon(&ti, measures::euclideanDistance, 2.3, 3, 1, 1);
 			std::vector<double> variances = predecon.allVariances[6];
 
@@ -120,9 +123,9 @@ namespace Testing
 
 		TEST_METHOD(tICalcPDims)
 		{
-			std::vector<Point>* ds = DataLoader("test2.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test2.txt").load();
 			Point rel = ds->at(6); // 3 1
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Predecon<TIDataSet> predecon(&ti, measures::euclideanDistance, 2.3, 3, 1, 1);
 
 			Assert::AreEqual(predecon.pDims[6], 1);
@@ -130,9 +133,9 @@ namespace Testing
 
 		TEST_METHOD(tICalcPrefVectors)
 		{
-			std::vector<Point>* ds = DataLoader("test2.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test2.txt").load();
 			Point rel = ds->at(6); // 3 1
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Predecon<TIDataSet> predecon(&ti, measures::euclideanDistance, 2.3, 3, 1, 1);
 
 			Assert::AreNotEqual(predecon.prefVectors[6][0], 1.0);
@@ -141,9 +144,9 @@ namespace Testing
 
 		TEST_METHOD(predecon)
 		{
-			std::vector<Point>* ds = DataLoader("test2.txt").load();
+			std::vector<Point>* ds = DataLoader(path + "test2.txt").load();
 			Point rel = ds->at(6); // 3 1
-			TIDataSet ti(ds, rel, measures::euclideanDistance);
+			TIDataSet ti(ds, measures::euclideanDistance, rel);
 			Predecon<TIDataSet> predecon(&ti, measures::euclideanDistance, 1.1, 3, -1.0, 999999999);
 			predecon.compute();
 			DataWriter("out.txt").write(ds);
