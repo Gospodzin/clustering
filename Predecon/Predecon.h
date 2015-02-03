@@ -6,8 +6,8 @@ template <typename T>
 class Predecon
 {
 public:
-	Predecon(T* data, measures::PrefMeasure prefMeasure, double eps, int mi, double delta, int lambda, double k = 1000.0) :
-		data(data), prefMeasure(prefMeasure), eps(eps), mi(mi), delta(delta), lambda(lambda),	k(k),
+	Predecon(T* data, measures::PrefMeasure prefMeasure, double eps, int mi, double delta, int lambda, double kappa = 1000.0) :
+		data(data), prefMeasure(prefMeasure), eps(eps), mi(mi), delta(delta), lambda(lambda),	kappa(kappa),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
 		allVariances(data->size()),	pDims(data->size()), prefVectors(data->size()) {
 		calcNeighbourhoods();
@@ -49,7 +49,7 @@ public:
 	const int mi;
 	const double delta;
 	const int lambda;
-	const double k;
+	const double kappa;
 
 	int curCid;
 	std::vector<std::vector<Point*> > neighbourhoods;
@@ -105,7 +105,7 @@ private:
 			auto& variances = allVariances[i];
 			prefVector.resize(variances.size());
 			for (int i = 0; i < variances.size(); ++i)
-				prefVector[i] = variances[i] <= delta ? k : 1;
+				prefVector[i] = variances[i] <= delta ? kappa : 1;
 		}
 		TP()
 	}

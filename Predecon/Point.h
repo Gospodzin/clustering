@@ -17,12 +17,7 @@ public:
 
 	std::string toString() {
 		std::stringstream ss;
-		ss << "[";
-		if (cid == NOISE)
-			ss << "N";
-		else
-			ss << cid;
-		ss << "]";
+		ss << cid;
 		for (double& v : *this)
 			ss << " " << v;
 		return ss.str();

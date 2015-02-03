@@ -6,11 +6,11 @@
 
 struct DataSet
 {
-	std::shared_ptr<std::vector<Point> > data;
+	std::vector<Point>* data;
 	measures::Measure measure;
 
 	DataSet(std::vector<Point>* data, measures::Measure measure) 
-		: data(std::shared_ptr<std::vector<Point> >(data)), measure(measure) {}
+		: data(data), measure(measure) {}
 
 	int size() {
 		return data->size();
