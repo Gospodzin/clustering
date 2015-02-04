@@ -1,6 +1,10 @@
-#include <stack>
+#pragma once
 #include "logging.h"
 #include "BasicDataSet.h"
+#include <map>
+#include "Cluster.h"
+
+
 
 //template <typename T>
 class Dbscan
@@ -15,6 +19,30 @@ public:
 
 	void run() {
 		dbscan();
+	}
+
+	std::vector<Cluster*> getClusters() {
+		dbscan();
+
+		std::map<int, Cluster*> clustersById;
+		std::vector<Cluster*> clusters;
+		for(Point& p : *(data->data)) {
+			if (p.cid != NOISE) {
+				if (clustersById.find(p.cid) != clustersById.end()) {
+					clustersById[p.cid]->points.push_back(&p);
+				}
+				else {
+					clusters.push_back(new Cluster(p.cid));
+					clustersById.emplace(p.cid, clusters.back());
+					clustersById[p.cid]->points.push_back(&p);
+				}
+			}
+		}
+
+		for (Point& p : *(data->data))  p.cid = NONE;
+
+
+		return clusters;
 	}
 
 private:
@@ -38,7 +66,7 @@ private:
 		}
 		else { // core point
 			point->cid = clusterId;
-			for each (Point* neighbour in ngb) {
+			for (Point* neighbour : ngb) {
 				neighbour->cid = clusterId;
 				seeds.push_back(neighbour);
 			}
@@ -48,7 +76,7 @@ private:
 				seeds.pop_back();
 				std::vector<Point*> seedNgb = data->regionQuery(*seed, eps, attrs);
 				if(seedNgb.size() >= mi) // core point
-					for each(Point* neighbour in seedNgb)
+					for(Point* neighbour : seedNgb)
 						if (neighbour->cid == NONE || neighbour->cid == NOISE) {
 							neighbour->cid = clusterId;	
 							seeds.push_back(neighbour);

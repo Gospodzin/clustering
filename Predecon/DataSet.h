@@ -17,9 +17,9 @@ struct DataSet
 	}
 
 	int dimensions() {
-		if (data->empty)
+		if (data->empty())
 			return -1;
-		return data->front.size();
+		return data->front().size();
 	}
 
 	std::vector<Point>::iterator begin() {
