@@ -1,5 +1,6 @@
 #include "DataWriter.h"
 #include "logging.h"
+#include <stdlib.h>
 
 
 DataWriter::DataWriter(std::string filePath) : file(filePath) {
@@ -23,5 +24,27 @@ void DataWriter::writeClusterIds(std::vector<Point>* data) {
 	TS();
 	for (Point& p : *data)
 		file << p.cid << std::endl;
+	TP();
+}
+
+void DataWriter::writeClusters(std::vector < std::map < std::vector <int>, std::vector<Cluster*> > > clustersByDim) {
+	LOG("Writing cluster ids to file...");
+	TS();
+	for (int i = 0; i < clustersByDim.size(); i++) {
+		file << "Dim "<<(i+1) << std::endl;
+		std::map < std::vector <int>, std::vector<Cluster*> > clustersByAttr = clustersByDim[i];
+		for (auto clusters : clustersByAttr) {
+			file << "\t";
+			for (int a : clusters.first) file<< (a+1) << " ";
+			file<<std::endl;
+			for (auto cluster : clusters.second) {
+				for (Point* p : cluster->points) {
+					file << "\t\t" << cluster->cid << " "<< p->toString() << std::endl;
+				}
+			}
+		}
+		
+
+	}
 	TP();
 }

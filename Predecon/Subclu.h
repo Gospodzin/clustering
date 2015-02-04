@@ -8,7 +8,6 @@ typedef std::vector <int> Subspace;
 typedef std::vector <Subspace> Subspaces;
 typedef std::vector<Cluster*> Clusters;
 
-//template <typename T>
 class Subclu
 {
 public:
@@ -18,8 +17,8 @@ public:
 	const double eps;
 	const int mi;
 
-	void run() {
-		subclu();
+	std::vector < std::map < Subspace, Clusters > > run() {
+		return subclu();
 	}
 private:
 	std::vector < std::map < Subspace, Clusters > > subclu() {
@@ -61,7 +60,7 @@ private:
 				}
 			}
 
-			if (!withClusters.empty())clustersByDim.push_back(newClustersByAttrs);
+			if (!newClustersByAttrs.empty())clustersByDim.push_back(newClustersByAttrs);
 			clustersByAttrs = newClustersByAttrs;
 			withClusters = newWithClusters;
 		}
