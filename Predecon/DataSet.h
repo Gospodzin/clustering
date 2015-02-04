@@ -16,6 +16,12 @@ struct DataSet
 		return data->size();
 	}
 
+	int dimensions() {
+		if (data->empty)
+			return -1;
+		return data->front.size();
+	}
+
 	std::vector<Point>::iterator begin() {
 		return data->begin();
 	}

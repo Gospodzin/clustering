@@ -12,5 +12,13 @@ struct BasicDataSet : DataSet
 				neighbours.push_back(&p);
 		return neighbours;
 	}
+
+	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs) {
+		std::vector<Point*> neighbours;
+		for (Point& p : *data)
+			if (measures::euclideanDistance(target, p, attrs) <= eps)
+				neighbours.push_back(&p);
+		return neighbours;
+	}
 };
 

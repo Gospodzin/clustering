@@ -28,6 +28,14 @@ namespace measures{
 		return sqrt(res);
 	}
 
+	double euclideanDistance(const Point& p1, const Point& p2, const std::vector<int>& attrs) {
+		double res = 0;
+		for (int i = 0; i < (int)(int)attrs.size(); ++i) {
+			double diff = p1[attrs[i]] - p2[attrs[i]];
+			res += diff*diff;
+		}
+		return sqrt(res);
+	}
 
 	double manhattanDistance(const Point& p1, const Point& p2) {
 		double res = 0;
