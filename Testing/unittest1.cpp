@@ -2,11 +2,11 @@
 #include "CppUnitTest.h"
 #include <fstream>
 #include <memory>
-#include "DataLoader.h"
-#include "TIDataSet.h"
+#include "DataIO/DataLoader.h"
+#include "Clustering/DataSets/TIDataSet.h"
 #include <codecvt>
-#include "Predecon.h"
-#include "DataWriter.h"
+#include "Clustering/Algorithms/Predecon.h"
+#include "DataIO/DataWriter.h"
 
 using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
