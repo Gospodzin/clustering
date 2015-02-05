@@ -23,8 +23,8 @@ struct TIDataSet : DataSet
 	std::vector<double> distances;
 	std::vector<int> idToSortedId;
 
-	TIDataSet(std::vector<Point>* data, measures::Measure measure, Point reference) :
-		DataSet(data, measure), reference(reference),
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference) :
+		DataSet(data, measureId), reference(reference),
 		sortedData(data->size()), distances(data->size()), idToSortedId(data->size()) {
 		LOG("Creating TIDataSet...")
 		TS();
@@ -39,7 +39,7 @@ struct TIDataSet : DataSet
 		TP();
 	}
 
-	TIDataSet(std::vector<Point>* data, measures::Measure measure, referenceSelectors::ReferenceSelector referenceSelector) : TIDataSet(data, measure, referenceSelector(*data)) {}
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector) : TIDataSet(data, measureId, referenceSelector(*data)) {}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps) {
 		std::vector<Point*> neighbours;

@@ -8,9 +8,10 @@ struct DataSet
 {
 	std::vector<Point>* data;
 	measures::Measure measure;
+	measures::MeasureId measureId;
 
-	DataSet(std::vector<Point>* data, measures::Measure measure) 
-		: data(data), measure(measure) {}
+	DataSet(std::vector<Point>* data, measures::MeasureId measureId) 
+		: data(data), measureId(measureId), measure(measures::getMeasure(measureId)) {}
 
 	int size() {
 		return data->size();

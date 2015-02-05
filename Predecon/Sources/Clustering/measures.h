@@ -5,7 +5,7 @@ namespace measures{
 	typedef  double(*Measure)(const Point&, const Point&);
 	typedef  double(*PrefMeasure)(const Point&, const Point&, std::vector<double>& prefVector);
 
-	enum Measures {
+	enum MeasureId {
 		Euclidean,
 		Manhattan
 	};
@@ -51,8 +51,8 @@ namespace measures{
 		return res;
 	}
 
-	Measure getMeasure(Measures measure) {
-		switch (measure) {
+	Measure getMeasure(MeasureId measureId) {
+		switch (measureId) {
 		case Euclidean:
 			return euclideanDistance;
 		case Manhattan:
@@ -60,8 +60,8 @@ namespace measures{
 		}
 	}
 
-	PrefMeasure getPrefMeasure(Measures measure) {
-		switch (measure) {
+	PrefMeasure getPrefMeasure(MeasureId measureId) {
+		switch (measureId) {
 		case Euclidean:
 			return euclideanDistance;
 		case Manhattan:

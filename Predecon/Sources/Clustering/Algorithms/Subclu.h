@@ -40,7 +40,7 @@ private:
 			Subspaces newWithClusters;
 			std::map < Subspace, Clusters > newClustersByAttrs;
 
-			// STEP 2.1 Generate (k+1)-D camdodate sinspaces
+			// STEP 2.1 Generate (k+1)-D candidate subspaces
 			Subspaces candidates = genCandidates(withClusters);
 			
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
@@ -49,7 +49,7 @@ private:
 				Clusters candClusters;
 				for (Cluster* cluster : clustersByAttrs[bestSub]) {
 					std::vector<Point> clusterData = getData(cluster);
-					BasicDataSet dataSet(&clusterData, measures::euclideanDistance);
+					BasicDataSet dataSet(&clusterData, measures::MeasureId::Euclidean);
 					Clusters clusters = convert(Dbscan<BasicDataSet>(&dataSet, eps, mi, cand).getClusters());
 					candClusters.reserve(candClusters.size() + clusters.size());
 					candClusters.insert(candClusters.end(), clusters.begin(), clusters.end());

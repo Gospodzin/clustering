@@ -6,8 +6,8 @@ template <typename T>
 class Predecon
 {
 public:
-	Predecon(T* data, measures::PrefMeasure prefMeasure, double eps, int mi, double delta, int lambda, double kappa = 1000.0) :
-		data(data), prefMeasure(prefMeasure), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
+	Predecon(T* data, double eps, int mi, double delta, int lambda, double kappa = 1000.0) :
+		data(data), prefMeasure(measures::getPrefMeasure(data->measureId)), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
 		allVariances(data->size()),	pDims(data->size()), prefVectors(data->size()) {
 		init();

@@ -1,25 +1,39 @@
 #pragma once
 #include <numeric>
+#include <chrono>
+
 #include "Clustering/clustering.h"
 
 typedef std::vector<Point> Data;
 
 struct TestData {
+	TestData(int n, double time) {
+		this->n = n;
+		this->time = time;
+	}
+
 	int n; // no. of samples
-	long time; // time in ms
+	double time; // sec
 };
 
 class AlgorithmTester {
 public:
 	AlgorithmTester(Data& data) : data(data) {}
 
-	/* test algorithm for number of samples in range <from, to) with given step  */
-	void test(int from, int to, int step) {
-		for (int n = from; n < to; n += step) {
+	std::vector<TestData> testNPredecon(int nFrom, int nTo, int nStep, double eps, int mi, double delta, int lambda, measures::MeasureId measureId) {
+		std::vector<TestData> testData;
+		testData.reserve((nTo - nFrom) / nStep);
+		for (int n = nFrom; n < nTo; n += nStep) {	
 			Data samples = getSamples(n);
-			BasicDataSet dataSet = BasicDataSet(&samples, measures::euclideanDistance);
-
+			BasicDataSet dataSet = BasicDataSet(&samples, measureId);
+			
+			long start = clock();
+			Predecon<BasicDataSet>(&dataSet, eps, mi, delta, lambda).compute();
+			double time = double(clock() - start) / CLOCKS_PER_SEC;
+			testData.push_back(TestData(n, time));
 		}
+
+		return testData;
 	}
 
 private:

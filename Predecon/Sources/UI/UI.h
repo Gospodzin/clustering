@@ -26,7 +26,7 @@ struct Settings {
 	double kappa = -1;
 	int pt = 7;
 	double ps = 0.2;
-	measures::Measures measure = static_cast<measures::Measures>(-1);
+	measures::MeasureId measureId = static_cast<measures::MeasureId>(-1);
 	DataStructure dataStructure = static_cast<DataStructure>(-1);
 };
 
@@ -41,12 +41,12 @@ public:
 		clock_t t = clock();
 		switch (sets.dataStructure){
 			case TI: {
-				TIDataSet dataSet(data, measures::getMeasure(sets.measure), referenceSelectors::max);
+				TIDataSet dataSet(data, sets.measureId, referenceSelectors::max);
 				performPredecon(dataSet, sets);
 				break;
 			}
 			case Basic: {
-				BasicDataSet dataSet(data, measures::getMeasure(sets.measure));
+				BasicDataSet dataSet(data, sets.measureId);
 				performPredecon(dataSet, sets);
 				break;
 			}
@@ -94,7 +94,7 @@ private:
 			if (vm.count("delta")) sets.delta= vm["delta"].as<double>();
 			if (vm.count("lambda")) sets.lambda= vm["lambda"].as<int>();
 			if (vm.count("kappa")) sets.kappa = vm["kappa"].as<double>();
-			if (vm.count("measure")) sets.measure = static_cast<measures::Measures>(vm["measure"].as<int>());
+			if (vm.count("measure")) sets.measureId = static_cast<measures::MeasureId>(vm["measure"].as<int>());
 			if (vm.count("ds")) sets.dataStructure = static_cast<DataStructure>(vm["ds"].as<int>());
 			if (vm.count("style.pt")) sets.pt= vm["style.pt"].as<int>();
 			if (vm.count("style.ps")) sets.ps = vm["style.ps"].as<double>();
@@ -119,10 +119,10 @@ private:
 			std::cout << "Enter data file path: ";
 			std::cin >> sets.path;
 		}
-		if (sets.measure == -1) {
+		if (sets.measureId == -1) {
 			std::cout << "Choose measure: \n" << measures::Euclidean << ". Euclidean\n" << measures::Manhattan << ". Manhattan\n";
 			std::cin >> tmpEnumId;
-			sets.measure = static_cast<measures::Measures>(tmpEnumId);
+			sets.measureId = static_cast<measures::MeasureId>(tmpEnumId);
 		}
 		if (sets.dataStructure == -1) {
 			std::cout << "Choose data structure: \n" << TI << ". TIPredecon\n" << Basic << ". BasicPredecon\n";
@@ -153,7 +153,7 @@ private:
 
 	template<typename T>
 	void performPredecon(T& dataSet, Settings sets) {
-		Predecon<T> predecon(&dataSet, measures::getPrefMeasure(sets.measure), sets.eps, sets.mi, sets.delta, sets.lambda, sets.kappa);
+		Predecon<T> predecon(&dataSet, sets.eps, sets.mi, sets.delta, sets.lambda, sets.kappa);
 		predecon.compute();
 	}
 

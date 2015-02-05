@@ -3,7 +3,7 @@
 
 struct BasicDataSet : DataSet
 {
-	BasicDataSet(std::vector<Point>* data, measures::Measure measure) : DataSet(data, measure) {}
+	BasicDataSet(std::vector<Point>* data, measures::MeasureId measure) : DataSet(data, measure) {}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps) {
 		std::vector<Point*> neighbours;
