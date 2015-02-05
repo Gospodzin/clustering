@@ -6,3 +6,5 @@ struct Cluster {
 	std::vector<Point*> points;
 	int cid;
 };
+
+typedef std::vector<Cluster*> Clusters;

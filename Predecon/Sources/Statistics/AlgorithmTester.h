@@ -7,30 +7,38 @@
 typedef std::vector<Point> Data;
 
 struct TestData {
-	TestData(int n, double time) {
+	TestData(int n, double time, int clustersNo) {
 		this->n = n;
 		this->time = time;
+		this->clustersNo = clustersNo;
 	}
 
 	int n; // no. of samples
 	double time; // sec
+	int clustersNo;
 };
 
 class AlgorithmTester {
 public:
 	AlgorithmTester(Data& data) : data(data) {}
 
+	
+
 	std::vector<TestData> testNPredecon(int nFrom, int nTo, int nStep, double eps, int mi, double delta, int lambda, measures::MeasureId measureId) {
 		std::vector<TestData> testData;
 		testData.reserve((nTo - nFrom) / nStep);
-		for (int n = nFrom; n < nTo; n += nStep) {	
+		for (int n = nFrom; n < nTo; n += nStep) {
 			Data samples = getSamples(n);
 			BasicDataSet dataSet = BasicDataSet(&samples, measureId);
-			
+
 			long start = clock();
 			Predecon<BasicDataSet>(&dataSet, eps, mi, delta, lambda).compute();
 			double time = double(clock() - start) / CLOCKS_PER_SEC;
-			testData.push_back(TestData(n, time));
+			std::set <int> clusters;
+			for (Point& point : dataSet)
+				if (point.cid != NOISE && clusters.find(point.cid) == clusters.end()) 
+					clusters.emplace(point.cid);
+			testData.push_back(TestData(n, time, clusters.size()));
 		}
 
 		return testData;

@@ -6,7 +6,6 @@
 
 typedef std::vector <int> Subspace;
 typedef std::vector <Subspace> Subspaces;
-typedef std::vector<Cluster*> Clusters;
 
 class Subclu
 {

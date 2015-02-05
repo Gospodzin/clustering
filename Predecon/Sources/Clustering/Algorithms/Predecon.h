@@ -9,17 +9,7 @@ public:
 	Predecon(T* data, double eps, int mi, double delta, int lambda, double kappa = 1000.0) :
 		data(data), prefMeasure(measures::getPrefMeasure(data->measureId)), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
-		allVariances(data->size()),	pDims(data->size()), prefVectors(data->size()) {
-		init();
-	}
-
-	void setData(T* data) {
-		this->data = data;
-		neighbourhoods.clear();
-		allVariances.clear();
-		pDims.clear();
-		prefVectors.clear();
-		prefNeighbourhoods.clear();
+		allVariances(data->size()),	prefDimsCount(data->size()), prefDims(data->size()), prefVectors(data->size()) {
 		init();
 	}
 	
@@ -40,7 +30,8 @@ public:
 	int curCid;
 	std::vector<std::vector<Point*> > neighbourhoods;
 	std::vector<std::vector<double> > allVariances;
-	std::vector<int> pDims;
+	std::vector<int> prefDimsCount;
+	std::vector<std::vector<int> > prefDims;
 	std::vector<std::vector<double> > prefVectors;
 	std::vector<std::vector<Point*> > prefNeighbourhoods;
 
@@ -48,7 +39,7 @@ private:
 	void init() {
 		calcNeighbourhoods();
 		calcAllVariances();
-		calcPDims();
+		calcPrefDims();
 		calcPrefVectors();
 		initialComputation();
 	}
@@ -69,7 +60,7 @@ private:
 							p->cid = curCid;
 							seeds.push(p);
 						}
-						else if (pDims[p->id] <= lambda)
+						else if (prefDimsCount[p->id] <= lambda)
 							p->cid = curCid;
 					}
 				}
@@ -106,12 +97,15 @@ private:
 		return variances;
 	}
 
-	void calcPDims() {
+	void calcPrefDims() {
 		LOG("Calculating preference dimensions...")TS()
 		for (int i = 0; i < allVariances.size(); ++i) {
-			int& pDim = pDims[i];
 			auto& variances = allVariances[i];
-			std::for_each(variances.begin(), variances.end(), [&](const double& v) -> void {if (v <= delta) ++pDim; });
+			for (int j = 0; j < variances.size(); ++j)
+				if (variances[j] <= delta) { 
+					++prefDimsCount[i]; 
+					prefDims[i].push_back(j);
+				}
 		}
 		TP()
 	}
@@ -131,7 +125,7 @@ private:
 	void initialComputation() {
 		LOG("Marking noise points and calculatng preference neighbourhoods...")TS()
 		auto satisfiesMi = [&](std::vector<Point*>& n) -> bool {return n.size() >= mi; };
-		auto satisfiesLambda = [&](Point& p) -> bool {return pDims[p.id] <= lambda; };
+		auto satisfiesLambda = [&](Point& p) -> bool {return prefDimsCount[p.id] <= lambda; };
 
 		for (int i = 0; i < data->size(); ++i) {
 			Point& point = (*data)[i];
