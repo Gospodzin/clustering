@@ -15,38 +15,39 @@ public:
 	BasicDataSet* const data;
 	const double eps;
 	const int mi;
+	std::map < Subspace, Clusters > clustersBySubspace;
 
-	std::vector < std::map < Subspace, Clusters > > compute() {
-		return subclu();
+	void compute() {
+		clustersBySubspace = subclu();
 	}
 private:
-	std::vector < std::map < Subspace, Clusters > > subclu() {
+	std::map < Subspace, Clusters > subclu() {
 		// STEP 1 Generate all 1-D clusters
-		std::map < Subspace, Clusters > clustersByAttrs;
+		std::map < Subspace, Clusters > clustersBySubspace;
 		Subspaces withClusters;
 		for (int a = 0; a < data->dimensions(); ++a) {
 			Subspace attrs(1, a);
 			auto clusters = Dbscan<BasicDataSet>(data, eps, mi, attrs).getClusters();
 			if (!clusters.empty()) {
-				clustersByAttrs.emplace(attrs, clusters);
+				clustersBySubspace.emplace(attrs, clusters);
 				withClusters.push_back(attrs);
 			}
 		}
 		// STEP 2 Generate (k+1)-D clusters from k-D clusters
-		std::vector < std::map < Subspace, Clusters > > clustersByDim;
-		clustersByDim.push_back(clustersByAttrs);
+		std::map < Subspace, Clusters > totalClustersBySubspace;
+		totalClustersBySubspace.insert(clustersBySubspace.begin(), clustersBySubspace.end());
 		while (!withClusters.empty()) {
 			Subspaces newWithClusters;
-			std::map < Subspace, Clusters > newClustersByAttrs;
+			std::map < Subspace, Clusters > newClustersBySubspace;
 
 			// STEP 2.1 Generate (k+1)-D candidate subspaces
 			Subspaces candidates = genCandidates(withClusters);
 			
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
 			for (Subspace cand : candidates) {
-				Subspace bestSub = minimalSubspace(cand, clustersByAttrs);
+				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
-				for (Cluster* cluster : clustersByAttrs[bestSub]) {
+				for (Cluster* cluster : clustersBySubspace[bestSub]) {
 					std::vector<Point> clusterData = getData(cluster);
 					BasicDataSet dataSet(&clusterData, measures::MeasureId::Euclidean);
 					Clusters clusters = convert(Dbscan<BasicDataSet>(&dataSet, eps, mi, cand).getClusters());
@@ -55,16 +56,17 @@ private:
 				}
 				if (!candClusters.empty()) {
 					newWithClusters.push_back(cand);
-					newClustersByAttrs.emplace(cand, candClusters);
+					newClustersBySubspace.emplace(cand, candClusters);
 				}
 			}
 
-			if (!newClustersByAttrs.empty())clustersByDim.push_back(newClustersByAttrs);
-			clustersByAttrs = newClustersByAttrs;
+			if (!newClustersBySubspace.empty()) totalClustersBySubspace.insert(newClustersBySubspace.begin(), newClustersBySubspace.end());
+
+			clustersBySubspace = newClustersBySubspace;
 			withClusters = newWithClusters;
 		}
 
-		return clustersByDim;
+		return totalClustersBySubspace;
 	}
 
 	Clusters convert(Clusters clusters) {
@@ -92,7 +94,7 @@ private:
 	Subspace minimalSubspace(Subspace& cand, std::map < Subspace, std::vector<Cluster*> >& clustersByAttrs) {
 		Subspace minimal;
 		int minNo = 1 << 30;
-		for (int i = 0; i < cand.size(); ++i) {
+		for (size_t i = 0; i < cand.size(); ++i) {
 			Subspace sub = cand;
 			sub.erase(sub.begin() + i);
 			std::vector<Cluster*>& clusters = clustersByAttrs[sub];
@@ -127,7 +129,7 @@ private:
 
 		// STEP 2.1.2 Prune irrelevant candidates subspaces
 		std::set<Subspace> withClustersSet(withClusters.begin(), withClusters.end());
-		for (int i = 0; i < candidates.size(); ++i)
+		for (size_t i = 0; i < candidates.size(); ++i)
 			if (pruneCand(candidates[i], withClustersSet))
 				candidates.erase(candidates.begin() + i--);
 
@@ -135,7 +137,7 @@ private:
 	}
 
 	bool pruneCand(Subspace& cand, std::set<Subspace>& withClusters) {
-		for (int i = 0; i < cand.size(); ++i) {
+		for (size_t i = 0; i < cand.size(); ++i) {
 			Subspace sub = cand;
 			sub.erase(sub.begin() + i);
 			if (withClusters.find(sub) == withClusters.end()) return true;
@@ -144,7 +146,7 @@ private:
 	}
 
 	bool arePairable(Subspace& s1, Subspace& s2) {
-		for (int i = 0; i < s1.size() - 1; ++i)
+		for (size_t i = 0; i < s1.size() - 1; ++i)
 			if (s1[i] != s2[i]) return false;
 
 		if (s1.back() >= s2.back()) return false;

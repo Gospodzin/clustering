@@ -3,69 +3,27 @@
 
 namespace measures{
 	typedef  double(*Measure)(const Point&, const Point&);
-	typedef  double(*PrefMeasure)(const Point&, const Point&, std::vector<double>& prefVector);
+	typedef  double(*PrefMeasure)(const Point&, const Point&, const std::vector<double>& prefVector);
+	typedef  double(*AttrsMeasure)(const Point&, const Point&, const std::vector<int>& attrs);
 
 	enum MeasureId {
 		Euclidean,
 		Manhattan
 	};
 
-	double euclideanDistance(const Point& p1, const Point& p2) {
-		double res = 0;
-		for (int i = 0; i < (int)(int)p1.size(); ++i) {
-			double diff = p1[i] - p2[i];
-			res += diff*diff;
-		}
-		return sqrt(res);
-	}
+	double euclideanDistance(const Point& p1, const Point& p2);
 
-	double euclideanDistance(const Point& p1, const Point& p2, std::vector<double>& prefVector) {
-		double res = 0;
-		for (int i = 0; i < (int)p1.size(); ++i) {
-			double diff = p1[i] - p2[i];
-			res += prefVector[i] * diff * diff;
-		}
-		return sqrt(res);
-	}
+	double euclideanDistance(const Point& p1, const Point& p2, const std::vector<double>& prefVector);
 
-	double euclideanDistance(const Point& p1, const Point& p2, const std::vector<int>& attrs) {
-		double res = 0;
-		for (int i = 0; i < (int)(int)attrs.size(); ++i) {
-			double diff = p1[attrs[i]] - p2[attrs[i]];
-			res += diff*diff;
-		}
-		return sqrt(res);
-	}
+	double euclideanDistance(const Point& p1, const Point& p2, const std::vector<int>& attrs);
 
-	double manhattanDistance(const Point& p1, const Point& p2) {
-		double res = 0;
-		for (int i = 0; i < (int)p1.size(); ++i)
-			res += std::abs(p1[i] - p2[i]);
-		return res;
-	}
+	double manhattanDistance(const Point& p1, const Point& p2);
 
-	double manhattanDistance(const Point& p1, const Point& p2, std::vector<double>& prefVector) {
-		double res = 0;
-		for (int i = 0; i < (int)p1.size(); ++i)
-			res += prefVector[i] * std::abs(p1[i] - p2[i]);
-		return res;
-	}
+	double manhattanDistance(const Point& p1, const Point& p2, const std::vector<double>& prefVector);
 
-	Measure getMeasure(MeasureId measureId) {
-		switch (measureId) {
-		case Euclidean:
-			return euclideanDistance;
-		case Manhattan:
-			return manhattanDistance;
-		}
-	}
+	double manhattanDistance(const Point& p1, const Point& p2, const std::vector<int>& attrs);
 
-	PrefMeasure getPrefMeasure(MeasureId measureId) {
-		switch (measureId) {
-		case Euclidean:
-			return euclideanDistance;
-		case Manhattan:
-			return manhattanDistance;
-		}
-	}
+	Measure getMeasure(MeasureId measureId);
+	PrefMeasure getPrefMeasure(MeasureId measureId);
+	AttrsMeasure getAttrsMeasure(MeasureId measureId);
 }

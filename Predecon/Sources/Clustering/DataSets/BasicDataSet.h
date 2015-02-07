@@ -14,9 +14,11 @@ struct BasicDataSet : DataSet
 	}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs) {
+		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
+
 		std::vector<Point*> neighbours;
 		for (Point& p : *data)
-			if (measures::euclideanDistance(target, p, attrs) <= eps)
+			if (measure(target, p, attrs) <= eps)
 				neighbours.push_back(&p);
 		return neighbours;
 	}

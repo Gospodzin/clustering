@@ -160,7 +160,7 @@ private:
 	StatsCollector stats(std::vector<Point>* data, std::string outPath, double time) {
 		StatsCollector sc;
 		sc.collect(*data);
-		sc.write("stt_" + std::string(outPath), time);
+		sc.write("stt_" + std::string(outPath), sc.toString(time));
 		return sc;
 	}
 

@@ -6,7 +6,7 @@ template <typename T>
 class Predecon
 {
 public:
-	Predecon(T* data, double eps, int mi, double delta, int lambda, double kappa = 1000.0) :
+	Predecon(T* data, double eps, unsigned mi, double delta, int lambda, double kappa = 1000.0) :
 		data(data), prefMeasure(measures::getPrefMeasure(data->measureId)), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
 		allVariances(data->size()),	prefDimsCount(data->size()), prefDims(data->size()), prefVectors(data->size()) {
@@ -22,7 +22,7 @@ public:
 	T* const data;
 	measures::PrefMeasure prefMeasure;
 	const double eps;
-	const int mi;
+	const unsigned mi;
 	const double delta;
 	const int lambda;
 	const double kappa;
@@ -87,7 +87,7 @@ private:
 		std::vector<double> variances(p.size());
 		auto accumVariances =
 			[&](const Point* pp) -> void {
-			for (int i = 0; i < p.size(); ++i) {
+			for (size_t i = 0; i < p.size(); ++i) {
 				double diff = p[i] - pp->at(i);
 				variances[i] += diff*diff;
 			}
@@ -99,9 +99,9 @@ private:
 
 	void calcPrefDims() {
 		LOG("Calculating preference dimensions...")TS()
-		for (int i = 0; i < allVariances.size(); ++i) {
+		for (size_t i = 0; i < allVariances.size(); ++i) {
 			auto& variances = allVariances[i];
-			for (int j = 0; j < variances.size(); ++j)
+			for (size_t j = 0; j < variances.size(); ++j)
 				if (variances[j] <= delta) { 
 					++prefDimsCount[i]; 
 					prefDims[i].push_back(j);
@@ -112,11 +112,11 @@ private:
 
 	void calcPrefVectors() {
 		LOG("Calculating preference vectors...")TS()
-		for (int i = 0; i < allVariances.size(); ++i) {
+			for (size_t i = 0; i < allVariances.size(); ++i) {
 			auto& prefVector = prefVectors[i];
 			auto& variances = allVariances[i];
 			prefVector.resize(variances.size());
-			for (int i = 0; i < variances.size(); ++i)
+			for (size_t i = 0; i < variances.size(); ++i)
 				prefVector[i] = variances[i] <= delta ? kappa : 1;
 		}
 		TP()
@@ -144,7 +144,7 @@ private:
 	void calcPrefNeighbourhood(Point& p) {
 		auto& neighbourhood = neighbourhoods[p.id];
 		auto& prefNeighbourhood = prefNeighbourhoods[p.id];
-		for (int i = 0; i < neighbourhood.size(); ++i) {
+		for (size_t i = 0; i < neighbourhood.size(); ++i) {
 			Point* neighbour = neighbourhood[i];
 			if (generalPrefMeasure(p, *neighbour) <= eps)
 				prefNeighbourhood.push_back(neighbour);

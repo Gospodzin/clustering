@@ -9,11 +9,11 @@ template <typename T>
 class Dbscan
 {
 public:
-	Dbscan(T* data, double eps, int mi, std::vector<int> attrs) : data(data), eps(eps), mi(mi), attrs(attrs) {}
+	Dbscan(T* data, double eps, unsigned mi, std::vector<int> attrs) : data(data), eps(eps), mi(mi), attrs(attrs) {}
 
 	T* const data;
 	const double eps;
-	const int mi;
+	const unsigned mi;
 	std::vector<int> attrs;
 
 	void compute() {

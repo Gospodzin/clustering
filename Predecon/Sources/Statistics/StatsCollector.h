@@ -8,6 +8,7 @@ public:
 	~StatsCollector();
 	void collect(std::vector<Point>& data);
 	std::vector<int> stats;
-	void write(std::string fileName, double time);
+	void write(std::string fileName, std::string statsStr);
+	std::string toString(double time);
 };
 
