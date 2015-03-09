@@ -10,6 +10,7 @@ struct Point : std::vector<double>
 {
 public:
 	Point(int dimsCount, int id);
+	Point(std::vector<double> data, int id);
 
 	int id;
 	CId cid;

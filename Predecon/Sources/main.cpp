@@ -1,5 +1,8 @@
 #include "SubcluUI.h"
 #include "AlgorithmTester.h"
+#include "ClusteringTests.h"
+#include <numeric>
+#include <chrono>
 
 
 int main(int ac, char* av[])
@@ -22,11 +25,11 @@ int main(int ac, char* av[])
 	std::stringstream ss;
 	ss << "out_P" << tp.str() << ".txt";
 	at.writeTestData(ss.str(), at.testPredecon(tp));*/
-	Data* data = DataLoader("testData.txt").load();
-	TIDataSet dataSet(data, measures::MeasureId::Euclidean, referenceSelectors::max);
-	Subclu subclu(&dataSet, 10000, 30);
+	
+	Data* data = DataLoader("dense_d2_r62556_sequoia.txt").load();
+	Subclu<TIDataSet> subclu(data, 10000, 30);
 	subclu.compute();
-
-	//SubcluUI().run(ac, av);
+	//system("pause");
+	//tests::runTests();
 	return 0;
 }

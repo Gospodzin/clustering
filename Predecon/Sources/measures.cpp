@@ -1,13 +1,14 @@
 #include "measures.h"
 
 namespace measures{
+    std::vector<int> attrs {0 ,1};
 	double euclideanDistance(const Point& p1, const Point& p2) {
-		double res = 0;
-		for (int i = 0; i < (int)(int)p1.size(); ++i) {
-			double diff = p1[i] - p2[i];
-			res += diff*diff;
-		}
-		return sqrt(res);
+        double res = 0;
+        for (int i = 0; i < (int)(int)p1.size(); ++i) {
+            double diff = p1[i] - p2[i];
+            res += diff*diff;
+        }
+        return sqrt(res);
 	}
 
 	double euclideanDistance(const Point& p1, const Point& p2, const std::vector<double>& prefVector) {
@@ -29,10 +30,10 @@ namespace measures{
 	}
 
 	double manhattanDistance(const Point& p1, const Point& p2) {
-		double res = 0;
-		for (int i = 0; i < (int)p1.size(); ++i)
-			res += std::abs(p1[i] - p2[i]);
-		return res;
+        double res = 0;
+        for (int i = 0; i < (int)p1.size(); ++i)
+            res += std::abs(p1[i] - p2[i]);
+        return res;
 	}
 
 	double manhattanDistance(const Point& p1, const Point& p2, const std::vector<double>& prefVector) {

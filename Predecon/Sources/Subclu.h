@@ -6,12 +6,13 @@
 
 #include "Subspace.h"
 
+template<typename T>
 class Subclu
 {
 public:
-	Subclu(TIDataSet* data, double eps, int mi) : data(data), eps(eps), mi(mi) {}
+	Subclu(std::vector<Point>* data, double eps, int mi) : data(*data), eps(eps), mi(mi) {}
 
-	TIDataSet* const data;
+	std::vector<Point>& data;
 	const double eps;
 	const int mi;
 	std::map < Subspace, Clusters > clustersBySubspace;
@@ -26,12 +27,14 @@ private:
 		// STEP 1 Generate all 1-D clusters
 		std::map < Subspace, Clusters > clustersBySubspace;
 		Subspaces withClusters;
-		for (int a = 0; a < data->dimensions(); ++a) {
-			Subspace attrs(1, a);
-			auto clusters = Dbscan<TIDataSet>(data, eps, mi, attrs).getClusters();
+		for (int a = 0; a < data.front().size(); ++a) {
+			Subspace subspace(1, a);
+			//LOG("Subspace: " + DataWriter::write(subspace))
+			TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max, subspace);
+			auto clusters = Dbscan<T>(&dataSet, eps, mi, subspace).getClusters();
 			if (!clusters.empty()) {
-				clustersBySubspace.emplace(attrs, clusters);
-				withClusters.push_back(attrs);
+				clustersBySubspace.emplace(subspace, clusters);
+				withClusters.push_back(subspace);
 			}
 		}
 		// STEP 2 Generate (k+1)-D clusters from k-D clusters
@@ -46,12 +49,13 @@ private:
 			
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
 			for (Subspace cand : candidates) {
+				//LOG("Subspace: " + DataWriter::write(cand))
 				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
 				for (Cluster* cluster : clustersBySubspace[bestSub]) {
 					std::vector<Point> clusterData = getData(cluster);
-					TIDataSet dataSet(&clusterData, measures::MeasureId::Euclidean, referenceSelectors::max);
-					Clusters clusters = convert(Dbscan<TIDataSet>(&dataSet, eps, mi, cand).getClusters());
+					TIDataSet dataSet(&clusterData, measures::MeasureId::Euclidean, referenceSelectors::max, cand);
+					Clusters clusters = convert(Dbscan<T>(&dataSet, eps, mi, cand).getClusters());
 					candClusters.reserve(candClusters.size() + clusters.size());
 					candClusters.insert(candClusters.end(), clusters.begin(), clusters.end());
 				}
@@ -76,7 +80,7 @@ private:
 			Cluster* n = new Cluster(cluster->cid);
 			n->points.reserve(cluster->points.size());
 			for (Point* point : cluster->points) {
-				Point* org = &((*(data->data))[idCache[point->id]]);
+				Point* org = &(data[idCache[point->id]]);
 				n->points.push_back(org);
 			}
 			orgC.push_back(n); 

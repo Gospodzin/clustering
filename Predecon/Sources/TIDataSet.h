@@ -2,73 +2,67 @@
 #include "DataSet.h"
 #include <algorithm>
 #include "referenceSelectors.h"
+#include <numeric>
 
 struct TIDataSet : DataSet
 {
-	Point reference;
-	std::vector<Point*> sortedData;
-	std::vector<double> distances;
+private:
+	struct PointWithDistance {
+		PointWithDistance(Point& point, double distance) : point(&point), distance(distance) {}
+
+		Point* point;
+		double distance;
+	};
+
+	std::vector<PointWithDistance> sortedData;
 	std::vector<int> idToSortedId;
+	Point reference;
 
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference) :
+public:
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference, std::vector<int> attrs) :
 		DataSet(data, measureId), reference(reference),
-		sortedData(data->size()), distances(data->size()), idToSortedId(data->size()) {
+		idToSortedId(data->size()) {
 		LOG("Creating TIDataSet...")
-		TS();
+		TS()
 		// init
-		for (int i = 0; i < size(); ++i) sortedData[i] = &data->at(i);
-		// calculate distances
- 		std::for_each(data->begin(), data->end(), [&](const Point& p) -> void {distances[p.id] = measure(p, reference); });
+		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
+		sortedData.reserve(data->size());
+		for (Point& p : *data) sortedData.emplace_back(p, attrs.size() == 0 ? this->measure(p, reference) : measure(p, reference, attrs));
 		// sort data
-		std::sort(sortedData.begin(), sortedData.end(), [&](const Point* p1, const Point* p2) -> bool {return distances[p1->id] < distances[p2->id]; });
+		std::sort(sortedData.begin(), sortedData.end(), [&](const PointWithDistance& p1, const PointWithDistance& p2) -> bool {return p1.distance < p2.distance; });
 		// create id to sortedId mapping
-		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i]->id] = i;
-		TP();
+		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].point->id] = i;
+		TP()
 	}
-
+	 
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector, std::vector<int> attrs) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
+	
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference) : TIDataSet(data, measureId, reference, {}) {}
+	
 	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector) : TIDataSet(data, measureId, referenceSelector(*data)) {}
 
-	std::vector<Point*> regionQuery(const Point& target, const double& eps) {
-		std::vector<Point*> neighbours;
-		int sortedId = idToSortedId[target.id];
+	std::vector<Point*> regionQuery(const Point& target, const double& eps) const { return regionQuery(target, eps, {}); }
 
-		//search upwards
-		for (int i = sortedId; i >= 0 && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; --i) {
-			Point& p = *sortedData[i];
-			if (measure(target, p) <= eps)
-				neighbours.push_back(&p);
-		}
-
-		//search downwards
-		for (int i = sortedId + 1; i < (int)data->size() && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; ++i) {
-			Point& p = *sortedData[i];
-			if (measure(target, p) <= eps)
-				neighbours.push_back(&p);
-		}
-
-		return neighbours;
-	}
-
-	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs) {
+	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs) const {
 		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
 
 		std::vector<Point*> neighbours;
 		int sortedId = idToSortedId[target.id];
 
 		//search upwards
-		for (int i = sortedId; i >= 0 && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; --i) {
-			Point& p = *sortedData[i];
-			if (measure(target, p, attrs) <= eps)
+		for (int i = sortedId; i >= 0 && abs(sortedData[sortedId].distance - sortedData[i].distance) <= eps; --i) {
+			Point& p = *sortedData[i].point;
+			if (distance(target, p, attrs) <= eps)
 				neighbours.push_back(&p);
 		}
 
 		//search downwards
-		for (int i = sortedId + 1; i < (int)data->size() && abs(distances[target.id] - distances[sortedData[i]->id]) <= eps; ++i) {
-			Point& p = *sortedData[i];
-			if (measure(target, p, attrs) <= eps)
+		for (int i = sortedId + 1; i < (int)data->size() && abs(sortedData[sortedId].distance - sortedData[i].distance) <= eps; ++i) {
+			Point& p = *sortedData[i].point;
+			if (distance(target, p, attrs) <= eps)
 				neighbours.push_back(&p);
 		}
-
+		
 		return neighbours;
 	}
 };

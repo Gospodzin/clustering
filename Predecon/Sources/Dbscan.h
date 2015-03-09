@@ -2,6 +2,7 @@
 #include "logging.h"
 #include "datasets.h"
 #include <map>
+#include <numeric>
 #include "Cluster.h"
 
 
@@ -10,10 +11,7 @@ class Dbscan
 {
 public:
 	Dbscan(T* data, double eps, unsigned mi, std::vector<int> attrs) : data(data), eps(eps), mi(mi), attrs(attrs) {}
-        Dbscan(T* data, double eps, unsigned mi) : Dbscan(data, eps, mi, std::vector<int>(data->size())) {
-		std::iota(attrs.begin(), attrs.end(), 0);
-	}
-
+	Dbscan(T* data, double eps, unsigned mi) : Dbscan(data, eps, mi, {}) {}
 
 	T* const data;
 	const double eps;
@@ -27,6 +25,8 @@ public:
 	std::vector<Cluster*> getClusters() {
 		dbscan();
 
+		LOG("Collecting clusters and cleaning data...")
+		TS()
 		std::map<int, Cluster*> clustersById;
 		std::vector<Cluster*> clusters;
 		for(Point& p : *(data->data)) {
@@ -43,7 +43,7 @@ public:
 		}
 
 		for (Point& p : *(data->data))  p.cid = NONE;
-
+		TP()
 		return clusters;
 	}
 
@@ -52,12 +52,15 @@ private:
 	std::vector<Point*> seeds;
 
 	void dbscan() {
+		LOG("Performing Dbscan...")
+		TS()
 		for (int i = 0; i < data->size(); ++i) {
 			Point* point = &(*data)[i];
 			if (point->cid == NONE) 
 				if (expandCluster(point)) 
 					++clusterId;
 		}
+		TP()
 	}
 
 	bool expandCluster(Point* point) {

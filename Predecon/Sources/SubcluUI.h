@@ -39,8 +39,7 @@ public:
 		std::vector<Point>* data = DataLoader(sets.path).load();
 		std::string fileName = getFileNameFromPath(sets.path);
 		clock_t t = clock();
-		TIDataSet dataSet(data, sets.measureId, referenceSelectors::max);
-		std::map<Subspace, Clusters> clustersBySubspace = performSubclu(dataSet, sets);
+		std::map<Subspace, Clusters> clustersBySubspace = performSubclu<TIDataSet>(data, sets);
 		double time = double((clock() - t)) / CLOCKS_PER_SEC;
 		std::stringstream ss;
 		ss << "e=" << sets.eps << "_m=" << sets.mi << "_d=" << sets.delta << "_l=" << sets.lambda;
@@ -125,8 +124,9 @@ private:
 		}
 	}
 
-	std::map<Subspace, Clusters> performSubclu(TIDataSet& dataSet, Settings sets) {
-		Subclu subclu(&dataSet, sets.eps, sets.mi);
+	template<typename T>
+	std::map<Subspace, Clusters> performSubclu(std::vector<Point>* data, Settings sets) {
+		Subclu<T> subclu(data, sets.eps, sets.mi);
 		subclu.compute();
 		return subclu.clustersBySubspace;
 	}

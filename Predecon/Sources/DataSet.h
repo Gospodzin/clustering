@@ -8,33 +8,22 @@ struct DataSet
 {
 	std::vector<Point>* data;
 	measures::Measure measure;
+	measures::AttrsMeasure attrsMeasure;
 	measures::MeasureId measureId;
 
-	DataSet(std::vector<Point>* data, measures::MeasureId measureId) 
-		: data(data), measureId(measureId), measure(measures::getMeasure(measureId)) {}
+	DataSet(std::vector<Point>* data, measures::MeasureId measureId) : data(data), measureId(measureId), 
+		measure(measures::getMeasure(measureId)), attrsMeasure(measures::getAttrsMeasure(measureId)) {}
 
-	int size() {
-		return data->size();
-	}
+	int dimensions() const { return data->empty() ? -1 : data->front().size(); }
+	int size() const { return data->size(); }
+	std::vector<Point>::iterator begin() const { return data->begin(); }
+	std::vector<Point>::iterator end() const { return data->end(); }
+	Point& operator[](const int& n) const { return data->at(n); }
+	void cleanUp() { for (Point& p : *data) p.cid = NONE; }
 
-	int dimensions() {
-		if (data->empty())
-			return -1;
-		return data->front().size();
+protected:
+	double distance(const Point& p1, const Point& p2, const std::vector<int>& attrs) const { 
+		return attrs.size() == 0 ? measure(p1, p2) : attrsMeasure(p1, p2, attrs); 
 	}
-
-	std::vector<Point>::iterator begin() {
-		return data->begin();
-	}
-
-	std::vector<Point>::iterator end() {
-		return data->end();
-	}
-
-	Point& operator[](const int& n) {
-		return data->at(n);
-	}
-	
-	std::vector<Point*> regionQuery(const Point& target, const double& eps);
 };
 
