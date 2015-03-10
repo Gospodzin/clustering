@@ -3,6 +3,7 @@
 #include "Dbscan.h"
 #include <map>
 #include <set>
+#include "ODC.h"
 
 #include "Subspace.h"
 
@@ -29,9 +30,9 @@ private:
 		Subspaces withClusters;
 		for (int a = 0; a < data.front().size(); ++a) {
 			Subspace subspace(1, a);
-			//LOG("Subspace: " + DataWriter::write(subspace))
-			TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max, subspace);
-			auto clusters = Dbscan<T>(&dataSet, eps, mi, subspace).getClusters();
+			//TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max, subspace);
+			//auto clusters = Dbscan<T>(&dataSet, eps, mi, subspace).getClusters();
+			auto clusters = ODC(&data, a, eps, mi).getClusters();
 			if (!clusters.empty()) {
 				clustersBySubspace.emplace(subspace, clusters);
 				withClusters.push_back(subspace);
@@ -49,7 +50,6 @@ private:
 			
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
 			for (Subspace cand : candidates) {
-				//LOG("Subspace: " + DataWriter::write(cand))
 				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
 				for (Cluster* cluster : clustersBySubspace[bestSub]) {
