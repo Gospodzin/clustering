@@ -24,7 +24,7 @@ std::vector<TestData> AlgorithmTester::testPredecon(TestParams testParams) {
 			}
 
 			if (tp.adjustMi && tp.testVar == N) // adjust mi
-				tp.mi = testParams.mi * ((double)tp.n / tp.from);
+                tp.mi = testParams.mi * (int)((double)tp.n / tp.from);
 
 			if (tp.testVar == N) samples = getSamples(tp.n);
 			else for (Point& p : samples) p.cid = NONE;

@@ -1,8 +1,9 @@
 #pragma once
-#include "DataSet.h"
-#include <algorithm>
-#include "referenceSelectors.h"
 #include <numeric>
+#include <algorithm>
+
+#include "DataSet.h"
+#include "referenceSelectors.h"
 
 struct TIDataSet : DataSet
 {
@@ -19,7 +20,7 @@ private:
 	Point reference;
 
 public:
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference, std::vector<int> attrs) :
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference, std::vector<int> attrs = {}) :
 		DataSet(data, measureId), reference(reference),
 		idToSortedId(data->size()) {
 		LOG("Creating TIDataSet...")
@@ -35,17 +36,9 @@ public:
 		TP()
 	}
 	 
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector, std::vector<int> attrs) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
-	
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference) : TIDataSet(data, measureId, reference, {}) {}
-	
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector) : TIDataSet(data, measureId, referenceSelector(*data)) {}
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector, std::vector<int> attrs = {}) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
 
-	std::vector<Point*> regionQuery(const Point& target, const double& eps) const { return regionQuery(target, eps, {}); }
-
-	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs) const {
-		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
-
+	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
 		std::vector<Point*> neighbours;
 		int sortedId = idToSortedId[target.id];
 

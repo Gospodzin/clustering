@@ -1,17 +1,28 @@
 #pragma once
 #include <chrono>
 #include <stack>
+#include <iostream>
+#include <string>
 
-struct LOG {
-	static std::stack<clock_t> ticks;
-};
+namespace logging {
+    struct Logger {
+        virtual void log(std::string val) {
+            std::cout << val << std::endl;
+        }
+    };
+
+    struct LOG {
+        static std::stack<clock_t> ticks;
+        static Logger* out;
+    };
+}
 
 #define LOG(m) \
-	printf("%s\n", m);
+    logging::LOG::out->log(m);
 
 #define TS() \
-	LOG::ticks.push(clock());
+    logging::LOG::ticks.push(clock());
 
 #define TP() \
-	printf("%f\n", double(clock() - LOG::ticks.top()) / CLOCKS_PER_SEC); LOG::ticks.pop();
+    logging::LOG::out->log(std::to_string(double(clock() - logging::LOG::ticks.top())/ CLOCKS_PER_SEC)); logging::LOG::ticks.pop();
 

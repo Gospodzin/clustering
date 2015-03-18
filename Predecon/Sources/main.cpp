@@ -50,11 +50,11 @@ int main(int ac, char* av[])
 	dbscan.compute();
 
 	Data* data1 = DataLoader(path).load();
-	OneDClustering odc1(data1, attr, eps, mi);
+	OneDClustering odc1(data1, eps, mi, attr);
 	odc1.compute();
 	//std::cout << DataWriter::write(data1)<<std::endl;
 	Data* data2 = DataLoader(path).load();
-	ODC odc2(data2, attr, eps, mi);
+	ODC odc2(data2, eps, mi, attr);
 	odc2.compute();
 	//std::cout << DataWriter::write(data2) << std::endl;
 

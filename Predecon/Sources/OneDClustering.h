@@ -5,9 +5,10 @@
 #include <algorithm>
 #include <queue>
 
+// deprecated
 class OneDClustering {
 public:
-	OneDClustering(std::vector<Point>* data, int attr, double eps, int mi) : data(data), attr(attr), eps(eps), mi(mi) {
+	OneDClustering(std::vector<Point>* data, double eps, int mi, int attr) : data(data), eps(eps), mi(mi), attr(attr) {
 		sortedData.reserve(data->size());
 		for (Point& p : *data) sortedData.emplace_back(&p);
 		std::sort(sortedData.begin(), sortedData.end(), [&](Point const* const& p1, Point const* const& p2) -> bool{ return p1->at(attr) < p2->at(attr); });

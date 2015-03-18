@@ -44,7 +44,7 @@ namespace tests {
 		std::vector<Point> data = getTestData();
 		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3);
-		std::vector<Cluster*> clusters = dbscan.getClusters();
+		std::vector<Cluster*> clusters = dbscan.getClusters().begin()->second;
 
 		assert(clusters.size() == 3 && "DbcanTestXY");
 	}
@@ -53,7 +53,7 @@ namespace tests {
 		std::vector<Point> data = getTestData();
 		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3, { 0 });
-		std::vector<Cluster*> clusters = dbscan.getClusters();
+		std::vector<Cluster*> clusters = dbscan.getClusters().begin()->second;
 
 		assert(clusters.size() == 2 && "DbcanTestX");
 	}
@@ -62,7 +62,7 @@ namespace tests {
 		std::vector<Point> data = getTestData();
 		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3, { 1 });
-		std::vector<Cluster*> clusters = dbscan.getClusters();
+		std::vector<Cluster*> clusters = dbscan.getClusters().begin()->second;
 
 		assert(clusters.size() == 1 && "DbcanTestY");
 	}

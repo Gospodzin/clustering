@@ -9,14 +9,27 @@ public:
 	Predecon(T* data, double eps, unsigned mi, double delta, int lambda, double kappa = 1000.0) :
 		data(data), prefMeasure(measures::getPrefMeasure(data->measureId)), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
 		curCid(NOISE), neighbourhoods(data->size()), prefNeighbourhoods(data->size()),
-		allVariances(data->size()),	prefDimsCount(data->size()), prefDims(data->size()), prefVectors(data->size()) {
-		init();
-	}
+		allVariances(data->size()),	prefDimsCount(data->size()), prefDims(data->size()), prefVectors(data->size()) {}
 	
 	void compute() {
-		LOG("Determining clusters...")TS()
+		init();
 		predecon();
-		TP()
+	}
+
+	std::map < Subspace, Clusters > getClusters() {
+		std::map < Subspace, Clusters > clustersBySubspace;
+
+		Subspace subspace = attrs.empty() ? utils::attrsFromData(dataSet->data) : attrs;
+
+		Clusters clusters = utils::dataToClusters(dataSet->data);
+
+		clustersBySubspace.emplace(subspace, clusters);
+
+		return clustersBySubspace;
+	}
+
+	void clean() {
+		for(Point& p : *data) p.cid = NONE;
 	}
 
 	T* const data;
