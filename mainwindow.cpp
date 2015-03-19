@@ -12,59 +12,47 @@
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
-    ui(new Ui::MainWindow)
-{
+    ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
     ui->logBrowser->document()->setMaximumBlockCount(100);
-    logging::LOG::out = new GuiLogger(ui->logBrowser);
+
+    connect(&compThread, SIGNAL(computed()), this, SLOT(update()));
+    connect(&loadThread, SIGNAL(loaded()), this, SLOT(dataLoaded()));
+
+    logging::LOG::out = &logger;
+    connect(&logger, SIGNAL(logSignal(QString)), this, SLOT(log(QString)));
 }
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
     delete ui;
 }
 
-measures::MeasureId MainWindow::getMeasureId(Measure measure) {
-    switch(measure) {
-    case EUCLIDEAN:
-        return measures::MeasureId::Euclidean;
-    case MANHATTAN:
-        return measures::MeasureId::Manhattan;
-    default:
-        throw -1;
-    }
+void MainWindow::dataLoaded() {
+    ui->loadButton->setEnabled(true);
+    ui->computeButton->setEnabled(true);
 }
 
-void MainWindow::on_computeButton_clicked()
-{
-    if(compThread.isRunning())
-        compThread.terminate();
-    else
-        compThread.start();
+void MainWindow::log(QString msg) {
+    ui->logBrowser->append(msg);
+}
+
+void MainWindow::update() {
+    stringToSubspace.clear();
+    for(auto clusters : compThread.result){
+        std::string subspaceStr = DataWriter::write(clusters.first);
+        stringToSubspace.emplace(subspaceStr, clusters.first);
+        ui->subspaceSelect->addItem(QString::fromStdString(subspaceStr));
+    }
+    ui->computeButton->setEnabled(true);
+    draw(*compThread.data, compThread.sets);
+}
+
+void MainWindow::on_computeButton_clicked() {
     try {
         Settings sets = collectSettings();
-
-        std::vector<Point>* data = DataLoader(sets.path).load();
-        curData = data;
-
-        switch(sets.algorithm) {
-        case DBSCAN:
-            switch(sets.dataStructure) {
-            case BASIC: runDbscan<BasicDataSet>(data, sets); break;
-            case TI: runDbscan<TIDataSet>(data, sets); break;
-            } break;
-        case PREDECON:
-            switch(sets.dataStructure) {
-            case BASIC: runPredecon<BasicDataSet>(data, sets); break;
-            case TI: runPredecon<TIDataSet>(data, sets); break;
-            } break;
-        case SUBCLU:
-            switch(sets.dataStructure) {
-            case BASIC: runSubclu<BasicDataSet>(data, sets); break;
-            case TI: runSubclu<TIDataSet>(data, sets); break;
-            } break;
-        }
+        ui->computeButton->setEnabled(false);
+        compThread.startWithSets(sets, loadThread.data);
     } catch(...) {}
 }
 
@@ -111,96 +99,6 @@ void MainWindow::draw(std::vector<Point>& data, Settings sets) {
 
         scene->addEllipse(x-radius, y-radius, radius*2.0, radius*2.0, pen, brush);
     }
-}
-
-template <typename T>
-void MainWindow::runSubclu(std::vector<Point>* data, Settings sets) {
-    long start = clock();
-    Subclu<T> subclu(data, sets.eps, sets.mi, sets.odc);
-    subclu.compute();
-    double totalTime = double(clock() - start) / CLOCKS_PER_SEC;
-
-    std::string statsStr = DataWriter::write(totalTime) + DataWriter::write(StatsCollector().collect(subclu.clustersBySubspace));
-    ui->outputBrowser->setText(QString::fromStdString(statsStr));
-
-    DataWriter dw("out.txt");
-    std::string output = dw.write(subclu.clustersBySubspace);
-    dw.write(statsStr);
-    dw.write("-------------------\n");
-    dw.write(output);
-    if(sets.writeOut) {
-        ui->outputBrowser->append("-------------------\n");
-        ui->outputBrowser->append(QString::fromStdString(output));
-    }
-
-    Subspace subspace(data->front().size());
-    std::iota(subspace.begin(), subspace.end(), 0);
-
-    ui->subspaceSelect->clear();
-    for(auto clusters : subclu.clustersBySubspace)
-        ui->subspaceSelect->addItem(QString::fromStdString(dw.write(clusters.first)));
-    ui->subspaceSelect->setCurrentText(QString::fromStdString(dw.write(subspace)));
-
-    Clusters clusters = subclu.clustersBySubspace[subspace];
-    for(Point& p : subclu.data)
-        p.cid = NOISE;
-    for(Cluster* cluster : clusters)
-        for(Point* p : cluster->points)
-            p->cid = cluster->cid;
-
-    cache = subclu.clustersBySubspace;
-
-    stringToSubspace.clear();
-    for(auto clusters : subclu.clustersBySubspace)
-        stringToSubspace.emplace(dw.write(clusters.first), clusters.first);
-
-    if(sets.draw) draw(subclu.data, sets);
-}
-
-template<typename T>
-void MainWindow::runDbscan(std::vector<Point>* data, Settings sets) {
-    long start = clock();
-    T dataSet(data, getMeasureId(sets.measure), referenceSelectors::max);
-    Dbscan<T> dbscan(&dataSet, sets.eps, sets.mi);
-    dbscan.compute();
-    double totalTime = double(clock() - start) / CLOCKS_PER_SEC;
-
-    std::string statsStr = DataWriter::write(totalTime) + DataWriter::write(StatsCollector().collect(*dataSet.data));
-    ui->outputBrowser->setText(QString::fromStdString(statsStr));
-
-    DataWriter dw("out.txt");
-    std::string output = dw.write(dbscan.data->data);
-    dw.write(statsStr);
-    dw.write("-------------------\n");
-    dw.write(output);
-    if(sets.writeOut) {
-        ui->outputBrowser->append("-------------------\n");
-        ui->outputBrowser->append(QString::fromStdString(output));
-    }
-    if(sets.draw) draw(*dbscan.data->data, sets);
-}
-
-template<typename T>
-void MainWindow::runPredecon(std::vector<Point>* data, Settings sets) {
-    long start = clock();
-    T dataSet(data, getMeasureId(sets.measure), referenceSelectors::max);
-    Predecon<T> predecon(&dataSet, sets.eps, sets.mi, sets.delta, sets.lambda);
-    predecon.compute();
-    double totalTime = double(clock() - start) / CLOCKS_PER_SEC;
-
-    std::string statsStr = DataWriter::write(totalTime) + DataWriter::write(StatsCollector().collect(*dataSet.data));
-    ui->outputBrowser->setText(QString::fromStdString(statsStr));
-
-    DataWriter dw("out.txt");
-    std::string output = dw.write(predecon.data->data, predecon.prefDims);
-    dw.write(statsStr);
-    dw.write("-------------------\n");
-    dw.write(output);
-    if(sets.writeOut) {
-        ui->outputBrowser->append("-------------------\n");
-        ui->outputBrowser->append(QString::fromStdString(output));
-    }
-    if(sets.draw) draw(*predecon.data->data, sets);
 }
 
 void MainWindow::on_browseButton_clicked() {
@@ -293,22 +191,23 @@ void MainWindow::on_algorithmSelect_currentTextChanged(const QString &val)
     }
 
     if(val.toStdString() == "SUBCLU") {
-        ui->subspaceSelect->setEnabled(true);
         ui->odcCheckBox->setEnabled(true);
     } else {
-        ui->subspaceSelect->setEnabled(false);
-        ui->subspaceSelect->clear();
         ui->odcCheckBox->setEnabled(false);
     }
 }
 
 void MainWindow::on_subspaceSelect_currentTextChanged(const QString &val) {
-    Clusters clusters = cache[stringToSubspace[val.toStdString()]];
-    for(Point& p : *curData)
+    Clusters clusters = compThread.result[stringToSubspace[val.toStdString()]];
+    for(Point& p : *compThread.data)
         p.cid = NOISE;
     for(Cluster* cluster : clusters)
         for(Point* p : cluster->points)
             p->cid = cluster->cid;
+}
 
-    draw(*curData, collectSettings());
+void MainWindow::on_loadButton_clicked() {
+    ui->loadButton->setEnabled(false);
+    std::string path = ui->dataFileBox->text().toStdString();
+    loadThread.startWitPath(path);
 }

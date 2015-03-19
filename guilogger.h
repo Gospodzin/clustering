@@ -1,13 +1,16 @@
 #pragma once
-#include <QTextBrowser>
+#include <QTCore>
+
 #include "logging.h"
 
-struct GuiLogger : logging::Logger {
-    QTextBrowser* logBrowser;
-    GuiLogger(QTextBrowser* logBrowser) : logging::Logger(), logBrowser(logBrowser) {}
+class GuiLogger : public QObject, public logging::Logger {
+    Q_OBJECT
 
 public:
     void log(std::string val) {
-        logBrowser->append(QString::fromStdString(val));
+        emit logSignal(QString::fromStdString(val));
     }
+
+signals:
+    void logSignal(QString msg);
 };

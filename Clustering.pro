@@ -22,7 +22,8 @@ SOURCES += main.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/measures.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Point.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/referenceSelectors.cpp \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/StatsCollector.cpp
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/StatsCollector.cpp \
+    qcustomplot/qcustomplot.cpp
 
 FORMS    += mainwindow.ui
 
@@ -51,7 +52,10 @@ HEADERS +=     mainwindow.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/TIDataSet.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/UI.h \
     guilogger.h \
-    computationthread.h
+    computationthread.h \
+    loaddatathread.h \
+    qcustomplot/qcustomplot.h
 
 INCLUDEPATH += C:/Utils/boost_1_55_0 \
-            C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources
+            C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources \
+            ./qcustomplot
