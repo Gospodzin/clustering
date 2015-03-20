@@ -10,6 +10,7 @@
 #include "computationthread.h"
 #include "loaddatathread.h"
 #include "guilogger.h"
+#include "qcustomplot.h"
 
 namespace Ui {
 class MainWindow;
@@ -25,20 +26,15 @@ public:
 
 private slots:
     void on_computeButton_clicked();
-
     void on_browseButton_clicked();
-
+    void on_loadButton_clicked();
+    void on_refreshButton_clicked();
     void on_algorithmSelect_currentTextChanged(const QString &arg1);
 
-    void on_subspaceSelect_currentTextChanged(const QString &arg1);
-
     void update();
-
     void dataLoaded();
-
     void log(QString msg);
-
-    void on_loadButton_clicked();
+    void plotClick(QMouseEvent* mouseEvent);
 
 private:
     ComputationThread compThread;
@@ -46,11 +42,23 @@ private:
     GuiLogger logger;
     std::map<std::string, Subspace> stringToSubspace;
 
+    Point* selectedPoint = NULL;
+    QCPScatterStyle oldScatterStyle;
+
+    DrawSettings lastDrawSets;
+
     Ui::MainWindow *ui;
 
     Settings collectSettings();
+    DrawSettings collectDrawSettings();
 
-    void draw(std::vector<Point>& data, Settings sets);
+    void draw(std::vector<Point>& data, DrawSettings sets);
+    void updateDataBySubspace(Subspace subspace);
+    void updateSubspaceSelect();
+    void updateDimensionSelects();
+    void updateSelectedPointView();
+    void updateSelectedClusterView();
+    void selectPoint(QMouseEvent* mouseEvent);
 };
 
 #endif // MAINWINDOW_H

@@ -1,4 +1,6 @@
 #pragma once
+#include <QString>
+#include "Subspace.h"
 
 enum Algorithm {
     DBSCAN,
@@ -25,10 +27,16 @@ struct Settings {
     double delta;
     int lambda;
     std::string path;
-    bool draw;
-    double pointSize;
     bool writeOut;
+    bool odc;
+};
+
+class MainWindow;
+
+struct DrawSettings {
     int x;
     int y;
-    bool odc;
+    double pointSize;
+    bool draw;
+    Subspace subspace;
 };

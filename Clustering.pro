@@ -6,7 +6,7 @@
 
 QT       += core gui
 
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets printsupport
 
 TARGET = Clustering
 TEMPLATE = app
@@ -29,6 +29,7 @@ FORMS    += mainwindow.ui
 
 HEADERS +=     mainwindow.h \
              settings.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/utils.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/algorithms.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/AlgorithmTester.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/BasicDataSet.h \
@@ -58,4 +59,4 @@ HEADERS +=     mainwindow.h \
 
 INCLUDEPATH += C:/Utils/boost_1_55_0 \
             C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources \
-            ./qcustomplot
+            C:/Users/Gospo/Documents/Qt/Clustering/qcustomplot

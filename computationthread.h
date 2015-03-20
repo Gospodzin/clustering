@@ -31,6 +31,8 @@ public:
 
 private:
     void compute(Settings sets) {
+        for(Point& p : *data) p.cid = NONE;
+
         switch(sets.algorithm) {
         case DBSCAN:
             switch(sets.dataStructure) {

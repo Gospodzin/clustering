@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>720</width>
-    <height>600</height>
+    <height>661</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -159,16 +159,6 @@
      <string>lambda</string>
     </property>
    </widget>
-   <widget class="QGraphicsView" name="graphicsView">
-    <property name="geometry">
-     <rect>
-      <x>9</x>
-      <y>60</y>
-      <width>460</width>
-      <height>460</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QPushButton" name="computeButton">
     <property name="enabled">
      <bool>false</bool>
@@ -297,35 +287,6 @@
      <string>Measure</string>
     </property>
    </widget>
-   <widget class="QLineEdit" name="pointSizeBox">
-    <property name="geometry">
-     <rect>
-      <x>200</x>
-      <y>521</y>
-      <width>31</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="inputMask">
-     <string/>
-    </property>
-    <property name="text">
-     <string>2</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_9">
-    <property name="geometry">
-     <rect>
-      <x>150</x>
-      <y>520</y>
-      <width>51</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Point size</string>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="drawCheckBox">
     <property name="enabled">
      <bool>true</bool>
@@ -361,87 +322,6 @@
      <bool>true</bool>
     </property>
    </widget>
-   <widget class="QLabel" name="subspaceLabel">
-    <property name="geometry">
-     <rect>
-      <x>241</x>
-      <y>520</y>
-      <width>47</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Subspace</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_5">
-    <property name="geometry">
-     <rect>
-      <x>18</x>
-      <y>538</y>
-      <width>16</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>x</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="xBox">
-    <property name="geometry">
-     <rect>
-      <x>12</x>
-      <y>521</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="inputMask">
-     <string/>
-    </property>
-    <property name="text">
-     <string>0</string>
-    </property>
-   </widget>
-   <widget class="QLineEdit" name="yBox">
-    <property name="geometry">
-     <rect>
-      <x>34</x>
-      <y>521</y>
-      <width>21</width>
-      <height>20</height>
-     </rect>
-    </property>
-    <property name="inputMask">
-     <string/>
-    </property>
-    <property name="text">
-     <string>1</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label_10">
-    <property name="geometry">
-     <rect>
-      <x>40</x>
-      <y>538</y>
-      <width>16</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>y</string>
-    </property>
-   </widget>
-   <widget class="QComboBox" name="subspaceSelect">
-    <property name="geometry">
-     <rect>
-      <x>290</x>
-      <y>521</y>
-      <width>101</width>
-      <height>20</height>
-     </rect>
-    </property>
-   </widget>
    <widget class="QCheckBox" name="odcCheckBox">
     <property name="enabled">
      <bool>false</bool>
@@ -464,7 +344,7 @@
       <x>480</x>
       <y>500</y>
       <width>231</width>
-      <height>80</height>
+      <height>131</height>
      </rect>
     </property>
    </widget>
@@ -494,17 +374,205 @@
      <string>Load</string>
     </property>
    </widget>
+   <widget class="QCustomPlot" name="plotView" native="true">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>460</width>
+      <height>460</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="selectedPointView">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>570</y>
+      <width>381</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <attribute name="horizontalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <row>
+     <property name="text">
+      <string>dim</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>val</string>
+     </property>
+    </row>
+   </widget>
+   <widget class="QLineEdit" name="pointSizeBox">
+    <property name="geometry">
+     <rect>
+      <x>200</x>
+      <y>69</y>
+      <width>31</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="inputMask">
+     <string/>
+    </property>
+    <property name="text">
+     <string>2</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="subspaceSelect">
+    <property name="geometry">
+     <rect>
+      <x>290</x>
+      <y>69</y>
+      <width>101</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>69</y>
+      <width>16</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>y</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>69</y>
+      <width>51</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Point size</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="subspaceLabel">
+    <property name="geometry">
+     <rect>
+      <x>241</x>
+      <y>69</y>
+      <width>47</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Subspace</string>
+    </property>
+   </widget>
    <widget class="QPushButton" name="refreshButton">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
     <property name="geometry">
      <rect>
       <x>400</x>
-      <y>520</y>
+      <y>68</y>
       <width>71</width>
       <height>22</height>
      </rect>
     </property>
     <property name="text">
      <string>Refresh</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="xSelect">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>69</y>
+      <width>31</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="ySelect">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>69</y>
+      <width>31</width>
+      <height>20</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>69</y>
+      <width>16</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>x</string>
+    </property>
+   </widget>
+   <widget class="QTableWidget" name="selectedClusterView">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>570</y>
+      <width>71</width>
+      <height>71</height>
+     </rect>
+    </property>
+    <attribute name="horizontalHeaderVisible">
+     <bool>false</bool>
+    </attribute>
+    <row>
+     <property name="text">
+      <string>id</string>
+     </property>
+    </row>
+    <row>
+     <property name="text">
+      <string>size</string>
+     </property>
+    </row>
+    <column>
+     <property name="text">
+      <string/>
+     </property>
+    </column>
+   </widget>
+   <widget class="QLabel" name="label_4">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>555</y>
+      <width>47</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Cluster</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>90</x>
+      <y>555</y>
+      <width>47</width>
+      <height>13</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Point</string>
     </property>
    </widget>
   </widget>
@@ -521,6 +589,14 @@
   <widget class="QStatusBar" name="statusBar"/>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>QCustomPlot</class>
+   <extends>QWidget</extends>
+   <header>qcustomplot.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources/>
  <connections/>
 </ui>

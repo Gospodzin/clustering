@@ -6,9 +6,12 @@
 
 #include <numeric>
 #include <thread>
+#include <sstream>
 
 #include "dataio.h"
 #include "guilogger.h"
+
+#include "utils.h"
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -16,12 +19,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     ui->logBrowser->document()->setMaximumBlockCount(100);
+    logging::LOG::out = &logger;
 
     connect(&compThread, SIGNAL(computed()), this, SLOT(update()));
     connect(&loadThread, SIGNAL(loaded()), this, SLOT(dataLoaded()));
-
-    logging::LOG::out = &logger;
     connect(&logger, SIGNAL(logSignal(QString)), this, SLOT(log(QString)));
+    connect(ui->plotView, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotClick(QMouseEvent*)));
 }
 
 MainWindow::~MainWindow() {
@@ -38,14 +41,44 @@ void MainWindow::log(QString msg) {
 }
 
 void MainWindow::update() {
+    ui->computeButton->setEnabled(true);
+    ui->refreshButton->setEnabled(true);
+    updateDimensionSelects();
+    updateSubspaceSelect();
+    DrawSettings sets = collectDrawSettings();
+    updateDataBySubspace(sets.subspace);
+    draw(*compThread.data, sets);
+}
+
+void MainWindow::updateSubspaceSelect() {
     stringToSubspace.clear();
+    ui->subspaceSelect->clear();
     for(auto clusters : compThread.result){
         std::string subspaceStr = DataWriter::write(clusters.first);
         stringToSubspace.emplace(subspaceStr, clusters.first);
         ui->subspaceSelect->addItem(QString::fromStdString(subspaceStr));
     }
-    ui->computeButton->setEnabled(true);
-    draw(*compThread.data, compThread.sets);
+}
+
+void MainWindow::updateDimensionSelects() {
+    auto x = ui->xSelect;
+    auto y = ui->ySelect;
+
+    x->clear();
+    y->clear();
+
+    Subspace attrs = utils::attrsFromData(compThread.data.get());
+
+    x->addItem("-");
+    y->addItem("-");
+
+    for(auto attr : attrs) {
+        x->addItem(QString::number(attr));
+        y->addItem(QString::number(attr));
+    }
+
+    x->setCurrentText("0");
+    y->setCurrentText("1");
 }
 
 void MainWindow::on_computeButton_clicked() {
@@ -56,56 +89,176 @@ void MainWindow::on_computeButton_clicked() {
     } catch(...) {}
 }
 
-void MainWindow::draw(std::vector<Point>& data, Settings sets) {
+void MainWindow::plotClick(QMouseEvent* mouseEvent) {
+    selectPoint(mouseEvent);
+    updateSelectedPointView();
+    updateSelectedClusterView();
+}
+
+void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
+    if(!compThread.data) return;
+
+    QCustomPlot* plot = ui->plotView;
+
+    double x = plot->xAxis->pixelToCoord(mouseEvent->x());
+    double y = plot->yAxis->pixelToCoord(mouseEvent->y());
+
+    int xAttr = lastDrawSets.x;
+    int yAttr = lastDrawSets.y;
+
+    double maxXDist = plot->xAxis->pixelToCoord(lastDrawSets.pointSize + 5) - plot->xAxis->pixelToCoord(0);
+    double maxYDist = plot->yAxis->pixelToCoord(0)-plot->yAxis->pixelToCoord(lastDrawSets.pointSize + 5);
+
+    Point* minP = NULL;
+    double minDist;
+    for(int i = 0; i < compThread.data->size(); ++i) {
+        Point* p = &compThread.data->at(i);
+
+        double xx = p->at(xAttr);
+        double yy = p->at(yAttr);
+
+        double xDist = std::abs(xx-x);
+        double yDist = std::abs(yy-y);
+
+        if(xDist <= maxXDist && yDist <= maxYDist) {
+            double dist = xDist*xDist + yDist*yDist;
+
+            if(minP == NULL) minP = p;
+            else if(dist < minDist) {
+                minP = p;
+                minDist = dist;
+            }
+        }
+    }
+
+    if(selectedPoint != NULL) {
+        plot->graph(selectedPoint->cid)->setScatterStyle(oldScatterStyle);
+        selectedPoint = NULL;
+    }
+
+    if(minP != NULL) {
+        std::stringstream ss;
+        ss<<"Select -> X:" <<minP->at(xAttr) << " Y:" << minP->at(yAttr) << " CID:" << minP->cid;
+        LOG(ss.str());
+
+        selectedPoint = minP;
+        oldScatterStyle = plot->graph(minP->cid)->scatterStyle();
+
+        plot->graph(minP->cid)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, Qt::red, oldScatterStyle.size()));
+        plot->replot();
+    }
+}
+
+void MainWindow::updateSelectedClusterView() {
+    if(selectedPoint == NULL) {
+        ui->selectedClusterView->clearContents();
+    } else {
+        int cid = selectedPoint->cid;
+        Clusters clusters = compThread.result[lastDrawSets.subspace];
+        Cluster* cluster = cid == NOISE ? NULL : clusters[cid];
+        ui->selectedClusterView->setItem(0, 0, new QTableWidgetItem(cid == NOISE ? "N" : QString::number(cid)));
+        ui->selectedClusterView->setItem(1, 0, new QTableWidgetItem(QString::number( cid == NOISE ? utils::countNoise(clusters, compThread.data.get()) : cluster->points.size())));
+    }
+}
+
+void MainWindow::updateSelectedPointView() {
+    if(selectedPoint == NULL) {
+        ui->selectedPointView->clearContents();
+        ui->selectedPointView->setColumnCount(0);
+    } else {
+        Subspace args = utils::attrsFromData(compThread.data.get());
+        ui->selectedPointView->setColumnCount(args.size());
+        for(int i = 0; i < args.size(); ++i) {
+            ui->selectedPointView->setItem(0, i, new QTableWidgetItem(QString::number(args[i])));
+            ui->selectedPointView->setItem(1, i, new QTableWidgetItem(QString::number(selectedPoint->at(i))));
+        }
+    }
+}
+
+void MainWindow::draw(std::vector<Point>& data, DrawSettings sets) {
+    QCustomPlot* plot = ui->plotView;
+
+    selectedPoint = NULL;
+    lastDrawSets = sets;
+    plot->clearGraphs();
+
     int xAttr = sets.x;
     int yAttr = sets.y;
 
-    double width = 420;
-    double height = 420;
-
-    double radius = sets.pointSize;
-
-    Point refMax = referenceSelectors::max(data);
-    Point refMin = referenceSelectors::min(data);
-
-    double xD = xAttr < data[0].size() ? refMax[xAttr] - refMin[xAttr] : 1;
-    double yD = yAttr < data[0].size() ? refMax[yAttr] - refMin[yAttr] : 1;
-
-    double x0 = xAttr < data[0].size() ? -refMin[xAttr] : 0;
-    double y0 = yAttr < data[0].size() ? -refMin[yAttr] : 0;
-
-    QGraphicsScene* scene = new QGraphicsScene;
-    scene->setSceneRect(0,0,width,height);
-
-    ui->graphicsView->setFixedSize(width, height);
-    ui->graphicsView->setScene(scene);
-
-    QBrush brush;
-    brush.setStyle(Qt::SolidPattern);
-    QPen pen;
-
+    double pointSize = sets.pointSize;
 
     int clustersNo = StatsCollector().collect(data).size();
 
-    for(int i=0; i<data.size();++i) {
-        Point& point = data[i];
-        double x = xAttr < point.size() ? (point[xAttr]+x0)*width/xD : width/2;
-        double y = yAttr < point.size() ? (point[yAttr]+y0)*height/yD : height/2;
-        int cid = point.cid;
-        int c = cid*0xFFFFFF / clustersNo;
-        QColor color(c%0xFF, (c/0xFF)%0xFF, (c/0xFF/0xFF)%0xFF);
-        brush.setColor(color);
-        pen.setColor(color);
+    std::vector<QVector<double>> x(clustersNo + 1);
+    std::vector<QVector<double>> y(clustersNo + 1);
 
-        scene->addEllipse(x-radius, y-radius, radius*2.0, radius*2.0, pen, brush);
+    for(Point& p : data) {
+        x[p.cid].push_back(xAttr < 0 ? 0 : p[xAttr]);
+        y[p.cid].push_back(yAttr < 0 ? 0 : p[yAttr]);
     }
-}
+
+    for(int cid=0; cid < clustersNo + 1;++cid) {
+        int c = cid*0xFFFFFF / (clustersNo + 1);
+        QColor color(c%0xFF, (c/0xFF)%0xFF, (c/0xFF/0xFF)%0xFF);
+
+        plot->addGraph();
+        plot->graph(cid)->setData(x[cid], y[cid]);
+        plot->graph(cid)->setLineStyle(QCPGraph::lsNone);
+        plot->graph(cid)->setScatterStyle(QCPScatterStyle(QCPScatterStyle::ssDisc, color, pointSize));
+    }
+
+    plot->xAxis->setLabel("x");
+    plot->yAxis->setLabel("y");
+    plot->rescaleAxes();
+
+    const double rangePadding = 0.03;
+
+    QCPRange xRange = plot->xAxis->range();
+    double xPadding = rangePadding*(xRange.upper - xRange.lower);
+    plot->xAxis->setRange(xRange.lower - xPadding, xRange.upper + xPadding);
+
+    QCPRange yRange = plot->yAxis->range();
+    double yPadding = rangePadding*(yRange.upper - yRange.lower);
+    plot->yAxis->setRange(yRange.lower - yPadding, yRange.upper + yPadding);
+
+    plot->setInteractions(QCP::iRangeDrag | QCP::iRangeZoom | QCP::iSelectPlottables );
+
+    plot->replot();
+ }
 
 void MainWindow::on_browseButton_clicked() {
     QStringList fileNames = QFileDialog::getOpenFileNames(this, tr("Select Data"));
     if(!fileNames.empty())
         ui->dataFileBox->setText(fileNames.front());
 }
+
+DrawSettings MainWindow::collectDrawSettings()  {
+    DrawSettings sets;
+
+    QString x = ui->xSelect->currentText();
+    QString y = ui->ySelect->currentText();
+    QString pointSize = ui->pointSizeBox->text();
+    bool draw = ui->drawCheckBox->isChecked();
+    QString subspace = ui->subspaceSelect->currentText();
+
+    bool ok;
+    int tmpI = x.toInt(&ok);
+    if(ok) sets.x = tmpI; else x = -1;
+
+    tmpI = y.toInt(&ok);
+    if(ok) sets.y = tmpI; else y = -1;
+
+    double tmpD = pointSize.toDouble(&ok);
+    if(ok) sets.pointSize = tmpD;
+    else {QMessageBox::warning(NULL, "Warning!", "Bad point size value!"); throw -1;}
+
+    sets.draw = draw;
+
+    sets.subspace = stringToSubspace[subspace.toStdString()];
+
+    return sets;
+}
+
 
 Settings MainWindow::collectSettings() {
     std::string algorithm = ui->algorithmSelect->currentText().toStdString();
@@ -116,11 +269,7 @@ Settings MainWindow::collectSettings() {
     QString delta = ui->deltaBox->text();
     QString lambda = ui->lambdaBox->text();
     std::string path = ui->dataFileBox->text().toStdString();
-    bool draw = ui->drawCheckBox->isChecked();
-    QString pointSize = ui->pointSizeBox->text();
     bool writeOut = ui->writeOutCheckBox->isChecked();
-    QString x = ui->xBox->text();
-    QString y = ui->yBox->text();
     bool odc = ui->odcCheckBox->isChecked();
 
     Settings sets;
@@ -156,20 +305,8 @@ Settings MainWindow::collectSettings() {
     }
 
     sets.path = path;
-    sets.draw = draw;
-
-    tmpD = pointSize.toDouble(&ok);
-    if(ok) sets.pointSize = tmpD;
-    else {QMessageBox::warning(NULL, "Warning!", "Bad point size value!"); throw -1;}
 
     sets.writeOut = writeOut;
-
-    tmpI = x.toInt(&ok);
-    if(ok) sets.x = tmpI;
-    else {QMessageBox::warning(NULL, "Warning!", "Bad mi value!"); throw -1;}
-    tmpI = y.toInt(&ok);
-    if(ok) sets.y = tmpI;
-    else {QMessageBox::warning(NULL, "Warning!", "Bad mi value!"); throw -1;}
 
     sets.odc = odc;
 
@@ -197,17 +334,23 @@ void MainWindow::on_algorithmSelect_currentTextChanged(const QString &val)
     }
 }
 
-void MainWindow::on_subspaceSelect_currentTextChanged(const QString &val) {
-    Clusters clusters = compThread.result[stringToSubspace[val.toStdString()]];
-    for(Point& p : *compThread.data)
-        p.cid = NOISE;
-    for(Cluster* cluster : clusters)
-        for(Point* p : cluster->points)
-            p->cid = cluster->cid;
-}
-
 void MainWindow::on_loadButton_clicked() {
     ui->loadButton->setEnabled(false);
     std::string path = ui->dataFileBox->text().toStdString();
     loadThread.startWitPath(path);
+}
+
+void MainWindow::on_refreshButton_clicked() {
+    DrawSettings sets = collectDrawSettings();
+    updateDataBySubspace(sets.subspace);
+    draw(*compThread.data, sets);
+}
+
+void MainWindow::updateDataBySubspace(Subspace subspace) {
+    Clusters clusters = compThread.result[subspace];
+    for(Point& p : *compThread.data)
+        p.cid = NOISE;
+    for(auto cluster : clusters)
+        for(Point* p : cluster.second->points)
+            p->cid = cluster.first;
 }
