@@ -27,7 +27,7 @@ public:
 	}
 
 	void clean() {
-		for(Point& p : *data) p.cid = NONE;
+        for(Point& p : data) p.cid = NONE;
 	}
 
 
@@ -41,7 +41,7 @@ private:
 		Subspaces withClusters;
 		for(int a = 0; a < data.front().size(); ++a) {
 			Subspace subspace(1, a);
-			std::vector<Cluster*> clusters;
+			Clusters clusters;
 
 			if(odc) {
 				ODC odc(&data, eps, mi, a);
@@ -76,12 +76,14 @@ private:
 			for(Subspace cand : candidates) {
 				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
-				for(Cluster* cluster : clustersBySubspace[bestSub]) {
-					std::vector<Point> clusterData = getData(cluster);
+				for(auto cluster : clustersBySubspace[bestSub]) {
+					std::vector<Point> clusterData = getData(cluster.second);
 					T dataSet(&clusterData, measures::MeasureId::Euclidean, referenceSelectors::max, cand);
-					Clusters clusters = convert(Dbscan<T>(&dataSet, eps, mi, cand).getClusters().begin()->second);
-					candClusters.reserve(candClusters.size() + clusters.size());
-					candClusters.insert(candClusters.end(), clusters.begin(), clusters.end());
+					Dbscan<T> dbscan(&dataSet, eps, mi, cand);
+					dbscan.compute();
+					Clusters clusters = convert(dbscan.getClusters().begin()->second);
+					dbscan.clean();
+					candClusters.insert(clusters.begin(), clusters.end());
 				}
 				if(!candClusters.empty()) {
 					newWithClusters.push_back(cand);
@@ -100,15 +102,15 @@ private:
 
 	Clusters convert(Clusters clusters) {
 		Clusters orgC;
-		for(Cluster* cluster : clusters) {
-			Cluster* n = new Cluster(cluster->cid);
-			n->points.reserve(cluster->points.size());
-			for(Point* point : cluster->points) {
+		for(auto cluster : clusters) {
+			Cluster* n = new Cluster(cluster.second->cid);
+			n->points.reserve(cluster.second->points.size());
+			for(Point* point : cluster.second->points) {
 				Point* org = &(data[idCache[point->id]]);
 				n->points.push_back(org);
 			}
-			orgC.push_back(n);
-			delete cluster;
+			orgC.emplace(n->cid, n);
+			delete cluster.second;
 		}
 		return orgC;
 	}
@@ -125,13 +127,13 @@ private:
 		return data;
 	}
 
-	Subspace minimalSubspace(Subspace& cand, std::map < Subspace, std::vector<Cluster*> >& clustersByAttrs) {
+	Subspace minimalSubspace(Subspace& cand, std::map < Subspace, Clusters >& clustersByAttrs) {
 		Subspace minimal;
 		int minNo = 1 << 30;
 		for(size_t i = 0; i < cand.size(); ++i) {
 			Subspace sub = cand;
 			sub.erase(sub.begin() + i);
-			std::vector<Cluster*>& clusters = clustersByAttrs[sub];
+			Clusters& clusters = clustersByAttrs[sub];
 			int curNo = countObjects(clusters);
 			if(curNo < minNo) {
 				minimal = sub;
@@ -141,10 +143,10 @@ private:
 		return minimal;
 	}
 
-	int countObjects(std::vector<Cluster*>& clusters) {
+	int countObjects(Clusters& clusters) {
 		int count = 0;
-		for(Cluster* c : clusters)
-			count += c->points.size();
+		for(auto c : clusters)
+			count += c.second->points.size();
 		return count;
 	}
 

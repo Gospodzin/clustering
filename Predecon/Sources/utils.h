@@ -6,24 +6,29 @@
 
 namespace utils {
 	static Clusters dataToClusters(std::vector<Point>* data) {
-		std::map<int, Cluster*> clustersById;
 		Clusters clusters;
 		for(Point& p : *data) {
 			if(p.cid != NOISE) {
-				if(clustersById.find(p.cid) != clustersById.end()) {
-					clustersById[p.cid]->points.push_back(&p);
+				if(clusters.find(p.cid) != clusters.end()) {
+					clusters[p.cid]->points.push_back(&p);
 				}
 				else {
-					clusters.push_back(new Cluster(p.cid));
-					clustersById.emplace(p.cid, clusters.back());
-					clustersById[p.cid]->points.push_back(&p);
+					clusters.emplace(p.cid, new Cluster(p.cid));
+					clusters[p.cid]->points.push_back(&p);
 				}
 			}
 		}
 
-		for(Point& p : *data)  p.cid = NONE;
-
 		return clusters;
+	}
+
+	static int countNoise(Clusters& clusters, Data* data) {
+		int clusteredCount = 0;
+		for(auto cluster : clusters) clusteredCount += cluster.second->points.size();
+
+		int noiseCount = data->size() - clusteredCount;
+
+		return noiseCount;
 	}
 
 	static Subspace attrsFromData(std::vector<Point>* data) {

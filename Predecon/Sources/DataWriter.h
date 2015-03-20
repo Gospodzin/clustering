@@ -16,7 +16,7 @@ public:
 	void write(std::string str);
 	static std::string write(std::vector<Point>* data);
 	static std::string write(std::vector<Point>* data, std::vector<std::vector<int>>& prefDims);
-	static std::string write(const std::map<Subspace, std::vector<Cluster*> >& clustersBySubspace);
+	static std::string write(const std::map<Subspace, Clusters >& clustersBySubspace);
 	static std::string write(const Subspace& subspace);
 	static std::string write(const std::map<CId, int>& sizeByCId);
 	static std::string write(const double& duration);

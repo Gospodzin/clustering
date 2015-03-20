@@ -7,4 +7,4 @@ struct Cluster {
 	CId cid;
 };
 
-typedef std::vector<Cluster*> Clusters;
+typedef std::map<int, Cluster*> Clusters;

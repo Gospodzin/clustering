@@ -4,12 +4,9 @@
 #include "measures.h"
 #include <sstream>
 
-typedef std::vector<Point> Data;
-
-
 enum TestVar {
 	N,
-	EPS,
+    EPS,
 	MI,
 	DELTA,
 	LAMBDA

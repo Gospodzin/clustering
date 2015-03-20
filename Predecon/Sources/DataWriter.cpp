@@ -55,15 +55,15 @@ std::string DataWriter::write(const Subspace& subspace) {
     return ss.str();
 }
 
-std::string DataWriter::write(const std::map < Subspace, std::vector<Cluster*> >& clustersBySubspace) {
+std::string DataWriter::write(const std::map < Subspace, Clusters >& clustersBySubspace) {
 	std::stringstream ss;
 	ss << "[Subspace]" << std::endl;
 	ss << "  [Cluster] : [Coords]" << std::endl;
     for (auto clusters : clustersBySubspace) {
         ss << write(clusters.first) << std::endl;
         for (auto cluster : clusters.second) {
-            for (Point* p : cluster->points) {
-                ss << "  " << cluster->cid << " : "<< p->toString() << std::endl;
+            for (Point* p : cluster.second->points) {
+                ss << "  " << cluster.first << " : "<< p->toString() << std::endl;
             }
         }
     }

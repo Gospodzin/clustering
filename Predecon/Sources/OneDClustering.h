@@ -10,8 +10,8 @@ class OneDClustering {
 public:
 	OneDClustering(std::vector<Point>* data, double eps, int mi, int attr) : data(data), eps(eps), mi(mi), attr(attr) {
 		sortedData.reserve(data->size());
-		for (Point& p : *data) sortedData.emplace_back(&p);
-		std::sort(sortedData.begin(), sortedData.end(), [&](Point const* const& p1, Point const* const& p2) -> bool{ return p1->at(attr) < p2->at(attr); });
+		for(Point& p : *data) sortedData.emplace_back(&p);
+		std::sort(sortedData.begin(), sortedData.end(), [&](Point const* const& p1, Point const* const& p2) -> bool { return p1->at(attr) < p2->at(attr); });
 	}
 
 	void compute() {
@@ -23,43 +23,43 @@ public:
 
 		int cid = NOISE + 1;
 
-		for (int i = 0; i < sortedData.size(); ++i) {
+		for(int i = 0; i < sortedData.size(); ++i) {
 			Point* p = sortedData[i];
-			if (fifol.empty() || dist(fifol.front(), p) <= eps) {
+			if(fifol.empty() || dist(fifol.front(), p) <= eps) {
 				fifol.push_back(p);
 				cur = p;
 			}
-			else if (dist(cur, p) <= eps) {
+			else if(dist(cur, p) <= eps) {
 				fifor.push_back(p);
 			}
 			else {
 				fifor.push_back(p);
-				while (!fifor.empty() && dist(cur, p) > eps) {
+				while(!fifor.empty() && dist(cur, p) > eps) {
 					cur = fifor.front();
 					fifor.pop_front();
 					fifol.push_back(cur);
 				}
-				while (dist(fifol.front(), cur) > eps) fifol.pop_front();
-				if (cur->cid == NONE && clusterFound) ++cid, clusterFound = false;
+				while(dist(fifol.front(), cur) > eps) fifol.pop_front();
+				if(cur->cid == NONE && clusterFound) ++cid, clusterFound = false;
 			}
 
-			if (fifol.size() + fifor.size() >= mi) {
-				if (fifor.size() > 0 && fifor.back()->cid != cid) {
+			if(fifol.size() + fifor.size() >= mi) {
+				if(fifor.size() > 0 && fifor.back()->cid != cid) {
 					clusterFound = true;
-					for (auto it = fifor.rbegin(); it != fifor.rend() && (*it)->cid != cid; ++it)
+					for(auto it = fifor.rbegin(); it != fifor.rend() && (*it)->cid != cid; ++it)
 						(*it)->cid = cid;
 				}
 
-				if (fifol.size() > 0 && fifol.back()->cid != cid) {
+				if(fifol.size() > 0 && fifol.back()->cid != cid) {
 					clusterFound = true;
-					for (auto it = fifol.rbegin(); it != fifol.rend() && (*it)->cid != cid; ++it)
+					for(auto it = fifol.rbegin(); it != fifol.rend() && (*it)->cid != cid; ++it)
 						(*it)->cid = cid;
 				}
 			}
 		}
 
-		for (Point* p : sortedData)
-			if (p->cid == NONE)
+		for(Point* p : sortedData)
+			if(p->cid == NONE)
 				p->cid = NOISE;
 	}
 
@@ -73,9 +73,9 @@ public:
 		TS();
 		std::map<int, Cluster*> clustersById;
 		std::vector<Cluster*> clusters;
-		for (Point& p : *data) {
-			if (p.cid != NOISE) {
-				if (clustersById.find(p.cid) != clustersById.end()) {
+		for(Point& p : *data) {
+			if(p.cid != NOISE) {
+				if(clustersById.find(p.cid) != clustersById.end()) {
 					clustersById[p.cid]->points.push_back(&p);
 				}
 				else {
@@ -86,7 +86,7 @@ public:
 			}
 		}
 
-		for (Point& p : *data)  p.cid = NONE;
+		for(Point& p : *data)  p.cid = NONE;
 		TP();
 		return clusters;
 	}
@@ -97,7 +97,7 @@ private:
 	std::vector<Point*> sortedData;
 	std::vector<Point>* data;
 
-	double dist( Point const* const& p1,  Point const* const & p2) const {
+	double dist(Point const* const& p1, Point const* const & p2) const {
 		return std::abs(p1->at(attr) - p2->at(attr));
 	}
 };

@@ -9,18 +9,20 @@ std::map<CId, int> StatsCollector::collect(std::vector<Point>& data) {
 	TS();
 	std::map<CId, int> stats;
 	for (Point& p : data)
-		if (stats.find(p.cid) == stats.end())
-			stats.emplace(p.cid, 1);
-		else
-			++stats[p.cid];
+        if(p.cid != NOISE) {
+            if (stats.find(p.cid) == stats.end())
+                stats.emplace(p.cid, 1);
+            else
+                ++stats[p.cid];
+        }
 	TP();
 	return stats;
 }
 
 std::map<CId, int> StatsCollector::collect(Clusters clusters) {
 	std::map<CId, int> stats;
-	for (Cluster* cluster : clusters)
-		stats.emplace(cluster->cid, cluster->points.size());
+	for (auto cluster : clusters)
+		stats.emplace(cluster.second->cid, cluster.second->points.size());
 
 	return stats;
 }
