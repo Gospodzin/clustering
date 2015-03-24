@@ -10,7 +10,8 @@ public:
 	~DataLoader();
 	std::vector<Point>* load();
 private:
-	Point strToPoint(const std::string& line);
+    double parseDouble(const char* number);
+    void strToPoint(std::string& line, Point& point);
 	int readDimsCount();
 	std::ifstream file;
 	int dimsCount;
