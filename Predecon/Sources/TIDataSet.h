@@ -9,9 +9,9 @@ struct TIDataSet : DataSet
 {
 private:
 	struct PointWithDistance {
-		PointWithDistance(Point& point, double distance) : point(&point), distance(distance) {}
+		PointWithDistance(Point& point, double distance) : point(point), distance(distance) {}
 
-		Point* point;
+		Point point;
 		double distance;
 	};
 
@@ -32,7 +32,7 @@ public:
 		// sort data
 		std::sort(sortedData.begin(), sortedData.end(), [&](const PointWithDistance& p1, const PointWithDistance& p2) -> bool {return p1.distance < p2.distance; });
 		// create id to sortedId mapping
-		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].point->id] = i;
+		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].point.id] = i;
 		TP()
 	}
 	 
@@ -44,17 +44,15 @@ public:
 
 		//search upwards
 		for (int i = sortedId; i >= 0 && abs(sortedData[sortedId].distance - sortedData[i].distance) <= eps; --i) {
-			Point& p = *sortedData[i].point;
-			if (distance(target, p, attrs) <= eps)
-				neighbours.push_back(&p);
+            if (distance(target, sortedData[i].point, attrs) <= eps)
+                neighbours.push_back(&data->at(sortedData[i].point.id));
 		}
 
 		//search downwards
 		for (int i = sortedId + 1; i < (int)data->size() && abs(sortedData[sortedId].distance - sortedData[i].distance) <= eps; ++i) {
-			Point& p = *sortedData[i].point;
-			if (distance(target, p, attrs) <= eps)
-				neighbours.push_back(&p);
-		}
+            if (distance(target, sortedData[i].point, attrs) <= eps)
+                neighbours.push_back(&data->at(sortedData[i].point.id));
+        }
 		
 		return neighbours;
 	}
