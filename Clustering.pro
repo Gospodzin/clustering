@@ -22,7 +22,6 @@ SOURCES += main.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/measures.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Point.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/referenceSelectors.cpp \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/StatsCollector.cpp \
     qcustomplot/qcustomplot.cpp
 
 FORMS    += mainwindow.ui
@@ -46,8 +45,8 @@ HEADERS +=     mainwindow.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Point.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Subspace.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Predecon.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Qscan.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/referenceSelectors.h \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/StatsCollector.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Subclu.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/SubcluUI.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/TIDataSet.h \

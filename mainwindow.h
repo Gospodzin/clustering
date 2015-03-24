@@ -5,7 +5,6 @@
 #include <QTimer>
 
 #include "settings.h"
-#include "StatsCollector.h"
 #include "clustering.h"
 #include "computationthread.h"
 #include "loaddatathread.h"
@@ -36,6 +35,10 @@ private slots:
     void log(QString msg);
     void plotClick(QMouseEvent* mouseEvent);
 
+    void on_terminateButton_clicked();
+
+    void on_clearLogButton_clicked();
+
 private:
     ComputationThread compThread;
     LoadDataThread loadThread;
@@ -59,6 +62,7 @@ private:
     void updateSelectedPointView();
     void updateSelectedClusterView();
     void selectPoint(QMouseEvent* mouseEvent);
+    void updateStats();
 };
 
 #endif // MAINWINDOW_H

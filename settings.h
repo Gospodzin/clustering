@@ -5,7 +5,8 @@
 enum Algorithm {
     DBSCAN,
     PREDECON,
-    SUBCLU
+    SUBCLU,
+    QSCAN
 };
 
 enum DataStructure {
@@ -27,7 +28,6 @@ struct Settings {
     double delta;
     int lambda;
     std::string path;
-    bool writeOut;
     bool odc;
 };
 

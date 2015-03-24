@@ -9,7 +9,7 @@
 #include "settings.h"
 #include "DataLoader.h"
 #include "DataWriter.h"
-#include "StatsCollector.h"
+#include "Qscan.h"
 
 class ComputationThread : public QThread
 {
@@ -49,6 +49,8 @@ private:
             case BASIC: runSubclu<BasicDataSet>(data.get(), sets); break;
             case TI: runSubclu<TIDataSet>(data.get(), sets); break;
             } break;
+        case QSCAN:
+            runQscan(data.get(), sets);
         }
     }
 
@@ -61,6 +63,15 @@ private:
         default:
             throw -1;
         }
+    }
+
+    void runQscan(std::vector<Point>* data, Settings sets) {
+        long start = clock();
+        Qscan qscan(data, sets.eps, sets.mi);
+        qscan.compute();
+        result = qscan.getClusters();
+        qscan.clean();
+        this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
     }
 
     template <typename T>

@@ -42,12 +42,32 @@ void MainWindow::log(QString msg) {
 
 void MainWindow::update() {
     ui->computeButton->setEnabled(true);
-    ui->refreshButton->setEnabled(true);
     updateDimensionSelects();
     updateSubspaceSelect();
     DrawSettings sets = collectDrawSettings();
+    updateStats();
     updateDataBySubspace(sets.subspace);
-    draw(*compThread.data, sets);
+    if(sets.draw) {
+        draw(*compThread.data, sets);
+        ui->refreshButton->setEnabled(true);
+    } else  {
+        ui->refreshButton->setEnabled(false);
+        ui->plotView->clearGraphs();
+        ui->plotView->replot();
+    }
+}
+
+void MainWindow::updateStats() {
+    ui->outputBrowser->clear();
+    ui->outputBrowser->append(QString::fromStdString(DataWriter::write(compThread.totalTime)));
+    ui->outputBrowser->append(QString::fromStdString(DataWriter::writeStats(compThread.result)));
+    if(ui->writeOutCheckBox->isChecked()) {
+        ui->outputBrowser->append("--------------");
+        ui->outputBrowser->append(QString::fromStdString(DataWriter::write(compThread.result)));
+    }
+    QTextCursor cursor = ui->outputBrowser->textCursor();
+    cursor.setPosition(0);
+    ui->outputBrowser->setTextCursor(cursor);
 }
 
 void MainWindow::updateSubspaceSelect() {
@@ -123,7 +143,10 @@ void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
         if(xDist <= maxXDist && yDist <= maxYDist) {
             double dist = xDist*xDist + yDist*yDist;
 
-            if(minP == NULL) minP = p;
+            if(minP == NULL) {
+                minP = p;
+                minDist = dist;
+            }
             else if(dist < minDist) {
                 minP = p;
                 minDist = dist;
@@ -187,7 +210,7 @@ void MainWindow::draw(std::vector<Point>& data, DrawSettings sets) {
 
     double pointSize = sets.pointSize;
 
-    int clustersNo = StatsCollector().collect(data).size();
+    int clustersNo = compThread.result[sets.subspace].size();
 
     std::vector<QVector<double>> x(clustersNo + 1);
     std::vector<QVector<double>> y(clustersNo + 1);
@@ -269,7 +292,6 @@ Settings MainWindow::collectSettings() {
     QString delta = ui->deltaBox->text();
     QString lambda = ui->lambdaBox->text();
     std::string path = ui->dataFileBox->text().toStdString();
-    bool writeOut = ui->writeOutCheckBox->isChecked();
     bool odc = ui->odcCheckBox->isChecked();
 
     Settings sets;
@@ -277,6 +299,7 @@ Settings MainWindow::collectSettings() {
     if(algorithm == "PREDECON") sets.algorithm = Algorithm::PREDECON;
     else if(algorithm == "DBSCAN") sets.algorithm = Algorithm::DBSCAN;
     else if(algorithm == "SUBCLU") sets.algorithm = Algorithm::SUBCLU;
+    else if(algorithm == "QSCAN") sets.algorithm = Algorithm::QSCAN;
     else {QMessageBox::warning(NULL, "Warning!", "No such algorithm!"); throw -1;}
 
     if(dataStructure == "TI") sets.dataStructure = DataStructure::TI;
@@ -305,8 +328,6 @@ Settings MainWindow::collectSettings() {
     }
 
     sets.path = path;
-
-    sets.writeOut = writeOut;
 
     sets.odc = odc;
 
@@ -353,4 +374,15 @@ void MainWindow::updateDataBySubspace(Subspace subspace) {
     for(auto cluster : clusters)
         for(Point* p : cluster.second->points)
             p->cid = cluster.first;
+}
+
+void MainWindow::on_terminateButton_clicked() {
+    if(compThread.isRunning()) {
+        compThread.terminate();
+        ui->computeButton->setEnabled(true);
+    }
+}
+
+void MainWindow::on_clearLogButton_clicked() {
+    ui->logBrowser->clear();
 }
