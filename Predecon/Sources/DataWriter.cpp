@@ -71,31 +71,20 @@ std::string DataWriter::write(const std::map < Subspace, Clusters >& clustersByS
 	return ss.str();
 }
 
-std::string DataWriter::write(const std::map<CId, int>& sizeByCId) {
-	std::stringstream ss;
-	ss << "No. of clusters found: " << (sizeByCId.find(NOISE) == sizeByCId.end() ? sizeByCId.size() : sizeByCId.size() - 1) << std::endl;
-	ss << "No. of noise points: " << (sizeByCId.find(NOISE) == sizeByCId.end() ? 0 : sizeByCId.at(NOISE)) << std::endl;
-	ss << "No. of points per cluster: " << std::endl;
-	ss << "[Cluster] : [Size]" << std::endl;
-	for(auto& size : sizeByCId)
-		ss << size.first << " : " << size.second << std::endl;
-	return ss.str();
-}
-
 std::string DataWriter::write(const double& duration) {
 	std::stringstream ss;
-	ss << "Duration [s]: " << duration << std::endl;
+	ss << "Duration [s]: " << duration;
 	return ss.str();
 }
 
-std::string DataWriter::write(const std::map<Subspace, std::map<CId, int> >& clusterSizesBySubspace) {
+std::string DataWriter::writeStats(const std::map< Subspace, Clusters >& clustersBySubspace) {
 	std::stringstream ss;
 	ss << "[Subspace]" << std::endl;
 	ss << "  " << "[Cluster]" << " : " << "[Size]" << std::endl;
-	for (auto& clusterSizes : clusterSizesBySubspace) {
-		ss << write(clusterSizes.first) << std::endl;
-		for (auto& clusterSize : clusterSizes.second)
-			ss << "  " << clusterSize.first << " : " << clusterSize.second << std::endl;
+	for(auto clusters : clustersBySubspace) {
+		ss << write(clusters.first) << std::endl;
+		for (auto cluster : clusters.second)
+			ss << "  " << cluster.first << " : " << cluster.second->points.size() << std::endl;
 	}
 	return ss.str();
 }

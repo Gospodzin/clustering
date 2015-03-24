@@ -19,7 +19,10 @@ public:
 	std::map < Subspace, Clusters > clustersBySubspace;
 
 	void compute() {
+		LOG("Performing Dbscan...");
+		TS();
 		dbscan();
+		TP();
 	}
 
 	std::map < Subspace, Clusters > getClusters() {
@@ -43,15 +46,12 @@ private:
 	std::vector<Point*> seeds;
 
 	void dbscan() {
-		LOG("Performing Dbscan...")
-			TS()
-			for(int i = 0; i < dataSet->size(); ++i) {
-				Point* point = &(*dataSet)[i];
-				if(point->cid == NONE)
-					if(expandCluster(point))
-						++clusterId;
-			}
-		TP()
+		for(int i = 0; i < dataSet->size(); ++i) {
+			Point* point = &(*dataSet)[i];
+			if(point->cid == NONE)
+				if(expandCluster(point))
+					++clusterId;
+		}
 	}
 
 	bool expandCluster(Point* point) {

@@ -11,8 +11,11 @@ public:
         allVariances(dataSet->size()), prefDimsCount(dataSet->size()), prefDims(dataSet->size()), prefVectors(dataSet->size()) {}
 
 	void compute() {
+		LOG("Performing Predecon...");
+		TS();
 		init();
 		predecon();
+		TP();
 	}
 
 	std::map < Subspace, Clusters > getClusters() {

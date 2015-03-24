@@ -34,6 +34,7 @@ public:
 private:
 	std::vector<int> idCache;
 	bool odc;
+    int subspaceCounter = 0;
 
 	std::map < Subspace, Clusters > subclu() {
 		// STEP 1 Generate all 1-D clusters
@@ -56,6 +57,7 @@ private:
 				clusters = dbscan.getClusters().begin()->second;
 				dbscan.clean();
 			}
+            ++subspaceCounter;
 
 			if(!clusters.empty()) {
 				clustersBySubspace.emplace(subspace, clusters);
@@ -80,6 +82,7 @@ private:
 					std::vector<Point> clusterData = getData(cluster.second);
 					T dataSet(&clusterData, measures::MeasureId::Euclidean, referenceSelectors::max, cand);
 					Dbscan<T> dbscan(&dataSet, eps, mi, cand);
+                    ++subspaceCounter;
 					dbscan.compute();
 					Clusters clusters = convert(dbscan.getClusters().begin()->second);
 					dbscan.clean();

@@ -5,7 +5,6 @@
 
 #include "dataio.h"
 #include "clustering.h"
-#include "StatsCollector.h"
 
 #include <boost/program_options.hpp>
 namespace po = boost::program_options;

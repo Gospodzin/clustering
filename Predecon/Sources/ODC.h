@@ -15,7 +15,10 @@ public:
 	}
 
 	void compute() {
+		LOG("Performing Dbscan...");
+		TS();
 		odc();
+		TP();
 	}
 
 	std::map < Subspace, Clusters > getClusters() {

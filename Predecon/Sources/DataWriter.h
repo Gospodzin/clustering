@@ -20,7 +20,7 @@ public:
 	static std::string write(const Subspace& subspace);
 	static std::string write(const std::map<CId, int>& sizeByCId);
 	static std::string write(const double& duration);
-	static std::string write(const std::map<Subspace, std::map<CId, int> >& clusterSizesBySubspace);
+	static std::string writeStats(const std::map< Subspace, Clusters >& clustersBySubspace);
 	void writeClusterIds(std::vector<Point>* data);
 	void writeGraph(std::vector<Point>* data);
 private:
