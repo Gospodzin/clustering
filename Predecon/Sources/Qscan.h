@@ -3,12 +3,13 @@
 
 class Qscan {
 public:
-	Qscan(std::vector<Point>* data, double eps, int mi) : data(data), eps(eps), mi(mi) {}
+    Qscan(std::vector<Point>* data, double eps, int mi) : data(data), eps(eps), mi(mi), ref(referenceSelectors::max(*data)) {}
 
 	std::vector<Point>* data;
 	const double eps;
 	const int mi;
 	std::map < Subspace, Clusters > clustersBySubspace;
+    Point ref;
 
 
 	void compute() {
@@ -47,12 +48,15 @@ private:
 		for(Point& p : *data) dataCpy.push_back(&p);
 
         std::nth_element(dataCpy.begin(), dataCpy.begin() + (dataCpy.size() - 1) / 2, dataCpy.end(), [&](const Point* p1, const Point* p2) -> bool {return p1->at(divDim) < p2->at(divDim); });
-        double median = dataCpy[(dataCpy.size() - 1) / 2]->at(divDim);
+        double median = dataCpy[dataCpy.size() / 2]->at(divDim);
 
-		std::vector<std::vector<Point>*> division = divide(divDim, median);
+        std::vector<Point>* L = new std::vector<Point>();
+        std::vector<Point>* R = new std::vector<Point>();
+        L->reserve(data->size() / 2 + 1);
+        R->reserve(data->size() - data->size() / 2 - 1);
 
-        std::vector<Point>* L = division[0];
-        std::vector<Point>* R = division[1];
+        for(int i = 0; i <= dataCpy.size() / 2; ++i) L->emplace_back(data->at(dataCpy[i]->id));
+        for(int i = dataCpy.size() / 2 + 1; i < dataCpy.size(); ++i) R->emplace_back(data->at(dataCpy[i]->id));
 
         performDbscan(L);
         performDbscan(R);
@@ -76,17 +80,6 @@ private:
 		int dim = std::distance(deviations.begin(), maxIt);
 
 		return dim;
-	}
-
-	std::vector< std::vector<Point>* > divide(int divDim, double bound) {
-        std::vector<Point>* L = new std::vector<Point>();
-        std::vector<Point>* R = new std::vector<Point>();
-		L->reserve((data->size() + 1) / 2);
-		R->reserve(data->size() / 2);
-
-		for(Point& p : *data) if(p[divDim] <= bound) L->push_back(p); else R->push_back(p);
-
-		return {L, R};
 	}
 
 	void merge(std::vector<Point>* L, std::vector<Point>* R, int divDim, double bound) {
@@ -141,7 +134,7 @@ private:
             idMap[i] = data->at(i).id;
             data->at(i).id = i;
         }
-        TIDataSet dataSet(data, measures::MeasureId::Euclidean, referenceSelectors::max);
+        TIDataSet dataSet(data, measures::MeasureId::Euclidean, ref);
         Dbscan<TIDataSet> dbscan(&dataSet, eps, mi);
         dbscan.compute();
         for(int i = 0; i < data->size(); ++i) data->at(i).id = idMap[i];

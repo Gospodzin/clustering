@@ -1,6 +1,7 @@
 #include "SubcluUI.h"
 #include "AlgorithmTester.h"
 #include "ClusteringTests.h"
+#include "PLDataSet.h"
 #include <numeric>
 #include <chrono>
 #include "OneDClustering.h"

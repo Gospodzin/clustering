@@ -17,7 +17,7 @@ private:
 
 	std::vector<PointWithDistance> sortedData;
 	std::vector<int> idToSortedId;
-	Point reference;
+    Point reference;
 
 public:
 	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference, std::vector<int> attrs = {}) :
@@ -36,11 +36,11 @@ public:
 		TP()
 	}
 	 
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector, std::vector<int> attrs = {}) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
+	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector = referenceSelectors::max, std::vector<int> attrs = {}) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
 
-	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
-		std::vector<Point*> neighbours;
-		int sortedId = idToSortedId[target.id];
+    std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
+        std::vector<Point*> neighbours;
+        int sortedId = idToSortedId[target.id];
 
 		//search upwards
 		for (int i = sortedId; i >= 0 && abs(sortedData[sortedId].distance - sortedData[i].distance) <= eps; --i) {

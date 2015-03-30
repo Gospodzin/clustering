@@ -46,9 +46,9 @@ private:
 
 	void odc() {
 		int cid = NOISE + 1;
-		int l = 0, r = 0;
+                int l = 0, r = 0;
 		bool clusterFound = false;
-		for(int i = 0; i < sortedData.size(); ++i) {
+                for(int i = 0; i < sortedData.size(); ++i) {
 			Point* cur = sortedData[i];
 			r = r < i ? i : r;
 			l = l > i ? i : l;
@@ -56,7 +56,7 @@ private:
 			while(r < sortedData.size() && dist(cur, sortedData[r]) <= eps) ++r;
 			if(cur->cid == NONE && clusterFound) ++cid, clusterFound = false;
 			if(r-- - l >= mi)
-				for(int j = r; j >= l && sortedData[j]->cid != cid; --j)
+                                for(int j = r; j >= l && sortedData[j]->cid != cid; --j)
 					sortedData[j]->cid = cid, clusterFound = true;
 		}
 

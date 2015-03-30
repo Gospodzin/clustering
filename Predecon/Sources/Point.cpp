@@ -1,6 +1,8 @@
 #include "Point.h"
 #include <sstream>
 
+Point::Point() {}
+
 Point::Point(int dimsCount, int id) : id(id), cid(NONE) { reserve(dimsCount); }
 
 Point::Point(std::vector<double> data, int id) : id(id), cid(NONE), vector<double>(data) {}
