@@ -10,38 +10,27 @@ struct RTreeDataSet : DataSet {
 private:
 	Point min;
 	Point max;
-	void** rTree;
+	void** rTree = NULL;
 	int dims;
-	int c = 0;
 	int* pagesCounts;
 
-	void createSubRTree(void** subRTree, int* pagesCounts, int dim) {
+	void emplacePoint(void**& subRTree, int* pagePath, int* pagesCounts, int dim, Point& p) {
 		if(dim == dims - 1) {
-			++c;
-			for(int i = 0; i < pagesCounts[dim - 1]; ++i)
-				subRTree[i] = new std::vector<Point*>[pagesCounts[dim]];
-		}
-		else for(int i = 0; i < pagesCounts[dim - 1]; ++i) {
-				subRTree[i] = new void*[pagesCounts[dim]];
-				createSubRTree((void**)subRTree[i], pagesCounts, dim + 1);
-			}
-	}
-
-	void emplacePoint(void** subRTree, int* pagePath, int* pagesCounts, int dim, Point& p) {
-		if(dim == dims - 1) {
+			if(subRTree == NULL) subRTree = (void**)new std::vector<Point*>[pagesCounts[dim]];
 			if(pagePath[dim] - 1 >= 0)               ((std::vector<Point*>*)subRTree)[pagePath[dim] - 1].emplace_back(&p);
 			                                         ((std::vector<Point*>*)subRTree)[pagePath[dim]    ].emplace_back(&p);
 			if(pagePath[dim] + 1 < pagesCounts[dim]) ((std::vector<Point*>*)subRTree)[pagePath[dim] + 1].emplace_back(&p);
 		}
 		else {
-			if(pagePath[dim] - 1 >= 0)               emplacePoint((void**)subRTree[pagePath[dim] - 1], pagePath, pagesCounts, dim + 1, p);
-			                                         emplacePoint((void**)subRTree[pagePath[dim]    ], pagePath, pagesCounts, dim + 1, p);
-			if(pagePath[dim] + 1 < pagesCounts[dim]) emplacePoint((void**)subRTree[pagePath[dim] + 1], pagePath, pagesCounts, dim + 1, p);
+			if(subRTree == NULL) subRTree = new void*[pagesCounts[dim]]();
+			if(pagePath[dim] - 1 >= 0)               emplacePoint((void**&)subRTree[pagePath[dim] - 1], pagePath, pagesCounts, dim + 1, p);
+			                                         emplacePoint((void**&)subRTree[pagePath[dim]    ], pagePath, pagesCounts, dim + 1, p);
+			if(pagePath[dim] + 1 < pagesCounts[dim]) emplacePoint((void**&)subRTree[pagePath[dim] + 1], pagePath, pagesCounts, dim + 1, p);
 		}
 	}
 
 public:
-	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId), dims(10) {
+	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId), dims(dimensions()) {
 		LOG("Creating RTree...");
 		TS();
 		// init;
@@ -51,9 +40,6 @@ public:
 		pagesCounts = new int[dims];
 		for(int i = 0; i < dims; ++i) pagesCounts[i] = std::ceil((max[i] - min[i]) / eps);
 
-		rTree = new void*[pagesCounts[0]];
-		createSubRTree(rTree, pagesCounts, 1);
-
 		int* pagePath = new int[dims];
 		for(Point& p : *data) {
 			for(int dim = 0; dim < dims; ++dim)
@@ -61,7 +47,6 @@ public:
 
 			emplacePoint(rTree, pagePath, pagesCounts, 0, p);
 		}
-
 
 		TP()
 	}

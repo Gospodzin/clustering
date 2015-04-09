@@ -73,6 +73,7 @@ int main(int ac, char* av[])
 	//	std::cout << dc[44][0] << std::endl;
 	//Subclu<TIDataSet> subclu(data, 10000, 30);
 	//subclu.compute();
+
 	Data* data = DataLoader("dense_d56_r96367_cup98_quarter.txt").load();
 	RTreeDataSet dataSet(data, measures::Euclidean, 20);
 	//TIDataSet dataSet(data, measures::Euclidean, referenceSelectors::max);
