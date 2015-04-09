@@ -40,6 +40,7 @@ public:
         // init;
         calcDeviations();
         this->sortDim = sortedAttr[0];
+		LOG("Selected sort dim: " + std::to_string(this->sortDim));
 		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
 		sortedData.reserve(data->size());
 		for(Point& p : *data) sortedData.emplace_back(p);

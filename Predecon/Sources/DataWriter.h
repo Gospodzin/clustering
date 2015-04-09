@@ -23,6 +23,7 @@ public:
 	static std::string writeStats(const std::map< Subspace, Clusters >& clustersBySubspace);
 	void writeClusterIds(std::vector<Point>* data);
 	void writeGraph(std::vector<Point>* data);
+	void writeData(Data& data);
 private:
 	std::ofstream file;
 };

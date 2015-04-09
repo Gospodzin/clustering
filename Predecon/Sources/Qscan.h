@@ -1,5 +1,6 @@
 #pragma once
 #include "Dbscan.h"
+#include "PLDataSet.h"
 
 class Qscan {
 public:
@@ -75,7 +76,7 @@ private:
 			for(int i = 0; i < p.size(); ++i)
 				deviations[i] += std::abs(p[i]-means[i]);
 
-		auto maxIt = std::max_element(deviations.begin(), deviations.end());
+		auto maxIt = std::min_element(deviations.begin(), deviations.end());
 
 		int dim = std::distance(deviations.begin(), maxIt);
 
@@ -83,6 +84,8 @@ private:
 	}
 
 	void merge(std::vector<Point>* L, std::vector<Point>* R, int divDim, double bound) {
+		LOG("Merging...");
+		TS();
 		std::vector<Point>* MF = new std::vector<Point>();
 
 		for(Point& p : *data)
@@ -90,42 +93,58 @@ private:
 
         performDbscan(MF);
 
+        // assign clusters to left data
         int lMaxCid=0;
         for(Point& p : *L) {
             data->at(p.id).cid = p.cid;
             if(p.cid > lMaxCid) lMaxCid = p.cid;
         }
 
-        int rMaxCid=lMaxCid;
+        // assign clusters to right data
+        int rMaxCid=0;
         for(Point& p : *R) {
             data->at(p.id).cid = p.cid == NOISE ? p.cid : p.cid + lMaxCid;
             if(p.cid > rMaxCid) rMaxCid = p.cid;
         }
 
-        int mfCidOffset = data->size();
-        for(Point& mfp : *MF) mfp.cid += mfp.cid == NOISE ? mfp.cid : mfCidOffset;
+        // increase mf clusters ids by offset so that they don't collide
+        int mfCidOffset = lMaxCid + rMaxCid;
+        int mfMaxCid=0;
+        for(Point& mfp : *MF) {
+            if(mfp.cid > mfMaxCid) mfMaxCid = mfp.cid;
+            mfp.cid = mfp.cid == NOISE ? mfp.cid : mfp.cid + mfCidOffset;
+        }
 
-        for(Point& mfp : *MF)
-			if(mfp.cid != NOISE) {
+        for(Point& mfp : *MF){
+           if(mfp.cid != NOISE) {
                 Point& dp = data->at(mfp.id);
-				if(dp.cid == NOISE)
-					dp.cid = mfp.cid;
-				else if(dp.cid != mfp.cid)
-					for(Point& pp : *data)
-						if(pp.cid == dp.cid) pp.cid = mfp.cid;
-			}
+                if(dp.cid == NOISE) {
+                    dp.cid = mfp.cid;
+                }
+                else if(dp.cid != mfp.cid) {
+                    int dpCid = dp.cid;
+                    for(Point& pp : *data) {
+                        if(pp.cid == dpCid) pp.cid = mfp.cid;
+                    }
+                }
+            }
+        }
 
-        std::vector<bool> cidExists(rMaxCid + 1);
+
+        std::vector<bool> cidExists(rMaxCid + lMaxCid + mfMaxCid + 1, false);
         for(Point &p : *data) if(!cidExists[p.cid]) cidExists[p.cid] = true;
+
         std::vector<int> steps;
         for(int cid = 1; cid < cidExists.size(); ++cid) if(!cidExists[cid]) steps.push_back(cid);
+
         for(Point& p : *data)
-            if(!steps.empty() && p.cid > steps.front() && p.cid <= rMaxCid) {
+            if(!steps.empty() && p.cid > steps.front()) {
                 int shift = 1;
                 for(;shift < steps.size() && p.cid > steps[shift]; ++shift);
                 p.cid -= shift;
             }
-        for(Point& p : *data) if(p.cid > data->size()) p.cid = rMaxCid + p.cid - mfCidOffset - steps.size();
+		LOG("Finished Merging...");
+		TP();
     }
 
     void performDbscan(std::vector<Point>* data) {
@@ -134,8 +153,8 @@ private:
             idMap[i] = data->at(i).id;
             data->at(i).id = i;
         }
-        TIDataSet dataSet(data, measures::MeasureId::Euclidean, ref);
-        Dbscan<TIDataSet> dbscan(&dataSet, eps, mi);
+		PLDataSet dataSet(data, measures::MeasureId::Euclidean, 1);
+		Dbscan<PLDataSet> dbscan(&dataSet, eps, mi);
         dbscan.compute();
         for(int i = 0; i < data->size(); ++i) data->at(i).id = idMap[i];
     }

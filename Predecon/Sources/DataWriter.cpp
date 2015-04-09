@@ -88,3 +88,8 @@ std::string DataWriter::writeStats(const std::map< Subspace, Clusters >& cluster
 	}
 	return ss.str();
 }
+
+void DataWriter::writeData(Data& data) {
+	for(Point& p : data)
+		file << p.toString() << std::endl;
+}

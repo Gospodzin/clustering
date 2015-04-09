@@ -9,8 +9,12 @@ Point::Point(std::vector<double> data, int id) : id(id), cid(NONE), vector<doubl
 
 std::string Point::toString() {
 	std::stringstream ss;
-	for (double& v : *this)
-		ss << " " << v;
+	bool first = true;
+	for(double& v : *this) {
+		if(!first) ss << " ";
+		else first = false;
+		ss << v;
+	}
 	return ss.str();
 }
 
