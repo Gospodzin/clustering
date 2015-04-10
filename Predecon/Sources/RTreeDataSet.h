@@ -13,40 +13,102 @@ private:
 	void** rTree = NULL;
 	int dims;
 	int* pagesCounts;
+	std::vector<int> rDims;
+	std::vector<double> deviations;
+	std::vector<int> sortedAttr;
 
-	void emplacePoint(void**& subRTree, int* pagePath, int* pagesCounts, int dim, Point& p) {
-		if(dim == dims - 1) {
-			if(subRTree == NULL) subRTree = (void**)new std::vector<Point*>[pagesCounts[dim]];
-			if(pagePath[dim] - 1 >= 0)               ((std::vector<Point*>*)subRTree)[pagePath[dim] - 1].emplace_back(&p);
-			                                         ((std::vector<Point*>*)subRTree)[pagePath[dim]    ].emplace_back(&p);
-			if(pagePath[dim] + 1 < pagesCounts[dim]) ((std::vector<Point*>*)subRTree)[pagePath[dim] + 1].emplace_back(&p);
+	struct Page {
+		std::vector<Page*> adjacent;
+		std::vector<Point*> points;
+	};
+
+	void emplacePoint(void**& subRTree, int* pagePath, int* pagesCounts, int dimId, Point& p) {
+		if(dimId == dims - 1) {
+			if(subRTree == NULL) subRTree = (void**)new Page[pagesCounts[dimId]]();
+			((Page*)subRTree)[pagePath[dimId]].points.emplace_back(&p);
 		}
 		else {
-			if(subRTree == NULL) subRTree = new void*[pagesCounts[dim]]();
-			if(pagePath[dim] - 1 >= 0)               emplacePoint((void**&)subRTree[pagePath[dim] - 1], pagePath, pagesCounts, dim + 1, p);
-			                                         emplacePoint((void**&)subRTree[pagePath[dim]    ], pagePath, pagesCounts, dim + 1, p);
-			if(pagePath[dim] + 1 < pagesCounts[dim]) emplacePoint((void**&)subRTree[pagePath[dim] + 1], pagePath, pagesCounts, dim + 1, p);
+			if(subRTree == NULL) subRTree = new void*[pagesCounts[dimId]]();
+			emplacePoint((void**&)subRTree[pagePath[dimId]], pagePath, pagesCounts, dimId + 1, p);
 		}
 	}
 
+	void fillAdjacentPages(void** subRTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
+		if(dimId == dims - 1) {
+			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
+				pagePath[dimId] = dimPage;
+				Page& page = ((Page*)subRTree)[dimPage];
+				if(!page.points.empty())
+					addAdjacent(rTree, page, pagePath, 0);
+			}
+		}
+		else {
+			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
+				if(subRTree[dimPage] != NULL) {
+					pagePath[dimId] = dimPage;
+					fillAdjacentPages((void**)subRTree[dimPage], pagesCounts, dimId + 1, pagePath);
+				}
+			}
+		}
+	}
+
+	void addAdjacent(void** subRTree, Page& page, std::vector<int>& pagePath, int dimId) {
+		if(dimId == dims - 1) {
+			if(pagePath[dimId] - 1 >= 0) { Page& adjPage = ((Page*)subRTree)[pagePath[dimId] - 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
+			{ Page& adjPage = ((Page*)subRTree)[pagePath[dimId]]; if(!adjPage.points.empty() && &adjPage != &page) page.adjacent.emplace_back(&adjPage); }
+			if(pagePath[dimId] + 1 < pagesCounts[dimId]) { Page& adjPage = ((Page*)subRTree)[pagePath[dimId] + 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
+		}
+		else {
+			if(pagePath[dimId] - 1 >= 0 && subRTree[pagePath[dimId] - 1] != NULL) addAdjacent((void**)subRTree[pagePath[dimId] - 1], page, pagePath, dimId + 1);
+			if(subRTree[pagePath[dimId]] != NULL) addAdjacent((void**)subRTree[pagePath[dimId]], page, pagePath, dimId + 1);
+			if(pagePath[dimId] + 1 < pagesCounts[dimId] && subRTree[pagePath[dimId] + 1] != NULL) addAdjacent((void**)subRTree[pagePath[dimId] + 1], page, pagePath, dimId + 1);
+		}
+	}
+
+	void calcDeviations() {
+		LOG("Calc deviations...");
+		TS();
+		std::vector<double> means(data->front().size());
+		for(Point& p : *data)
+			std::transform(p.begin(), p.end(), means.begin(), means.begin(), std::plus<double>());
+		std::transform(means.begin(), means.end(), means.begin(), [&](double m) -> double { return m / data->size(); });
+
+		deviations.resize(data->front().size());
+		for(Point& p : *data)
+			for(int i = 0; i < p.size(); ++i)
+				deviations[i] += std::abs(p[i] - means[i]);
+		sortedAttr.resize(dimensions());
+		for(int i = 0; i < dimensions(); ++i) sortedAttr[i] = i;
+		std::sort(sortedAttr.begin(), sortedAttr.end(), [&](int a, int b) -> bool { return deviations[a]>deviations[b]; });
+		TP();
+	}
+
 public:
-	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId), dims(dimensions()) {
+	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId) {
 		LOG("Creating RTree...");
 		TS();
 		// init;
+		calcDeviations();
+		int n = 3 > dimensions() ? dimensions() : 3;
+		for(int i=0; i < n; ++i) rDims.push_back(sortedAttr[i]);
+		dims = rDims.size();
+
 		min = referenceSelectors::min(*data);
 		max = referenceSelectors::max(*data);
 
 		pagesCounts = new int[dims];
-		for(int i = 0; i < dims; ++i) pagesCounts[i] = std::ceil((max[i] - min[i]) / eps);
+		for(int dimId = 0; dimId < dims; ++dimId) pagesCounts[dimId] = (max[rDims[dimId]] - min[rDims[dimId]]) / eps + 1;
 
 		int* pagePath = new int[dims];
 		for(Point& p : *data) {
-			for(int dim = 0; dim < dims; ++dim)
-				pagePath[dim] = (p[dim] - min[dim]) / eps;
+			for(int dimId = 0; dimId < dims; ++dimId)
+				pagePath[dimId] = (p[rDims[dimId]] - min[rDims[dimId]]) / eps;
 
 			emplacePoint(rTree, pagePath, pagesCounts, 0, p);
 		}
+
+		std::vector<int> vPagePath(dims);
+		fillAdjacentPages(rTree, pagesCounts, 0, vPagePath);
 
 		TP()
 	}
@@ -55,17 +117,22 @@ public:
 		std::vector<Point*> neighbours;
 
 		void** pagePtr = rTree;
-		for(int dim = 0; dim < dims - 1; ++dim) { // go down the tree to the bottom level
-			int dimPage = (target[dim] - min[dim]) / eps;
+		for(int dimId = 0; dimId < dims - 1; ++dimId) { // go down the tree to the bottom level
+			int dimPage = (target[rDims[dimId]] - min[rDims[dimId]]) / eps;
 			pagePtr = (void**)pagePtr[dimPage];
 		}
 		
-		int dimPage = (target[dims - 1] - min[dims - 1]) / eps;
-		std::vector<Point*>& page = ((std::vector<Point*>*)pagePtr)[dimPage];
+		int dimPage = (target[rDims[dims - 1]] - min[rDims[dims - 1]]) / eps;
+		Page& page = ((Page*)pagePtr)[dimPage];
 		
-		for(Point* p : page)
+		for(Point* p : page.points)
 			if(distance(target, *p, {}) <= eps)
 				neighbours.emplace_back(p);
+
+		for(Page* adjPage : page.adjacent)
+			for(Point* p : adjPage->points)
+				if(distance(target, *p, {}) <= eps)
+					neighbours.emplace_back(p);
 
 		return neighbours;
 	}

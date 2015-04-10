@@ -75,9 +75,10 @@ int main(int ac, char* av[])
 	//subclu.compute();
 
 	Data* data = DataLoader("dense_d56_r96367_cup98_quarter.txt").load();
-	RTreeDataSet dataSet(data, measures::Euclidean, 20);
+	double eps = 20;
+	RTreeDataSet dataSet(data, measures::Euclidean, eps);
 	//TIDataSet dataSet(data, measures::Euclidean, referenceSelectors::max);
-	Dbscan<RTreeDataSet> dbscan(&dataSet, 20, 5);
+	Dbscan<RTreeDataSet> dbscan(&dataSet, eps, 5);
 	dbscan.compute();
 	system("pause");
 	//tests::runTests();
