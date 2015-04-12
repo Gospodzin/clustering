@@ -83,6 +83,25 @@ private:
 		TP();
 	}
 
+	void sortPages(void** subRTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
+		if(dimId == dims - 1) {
+			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
+				pagePath[dimId] = dimPage;
+				Page& page = ((Page*)subRTree)[dimPage];
+				if(!page.points.empty())
+					std::sort(page.points.begin(), page.points.end(), [&](Point* p1, Point* p2) -> bool { return (*p1)[sortedAttr[0]] < (*p2)[sortedAttr[0]]; });
+			}
+		}
+		else {
+			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
+				if(subRTree[dimPage] != NULL) {
+					pagePath[dimId] = dimPage;
+					sortPages((void**)subRTree[dimPage], pagesCounts, dimId + 1, pagePath);
+				}
+			}
+		}
+	}
+
 public:
 	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId) {
 		LOG("Creating RTree...");
@@ -107,10 +126,19 @@ public:
 			emplacePoint(rTree, pagePath, pagesCounts, 0, p);
 		}
 
+		LOG("Filling adjacent pages...");
+		TS();
 		std::vector<int> vPagePath(dims);
 		fillAdjacentPages(rTree, pagesCounts, 0, vPagePath);
+		TP();
 
-		TP()
+		LOG("Sorting points in pages...");
+		TS();
+		std::vector<int> vPagePath2(dims);
+		sortPages(rTree, pagesCounts, 0, vPagePath2);
+		TP();
+
+		TP();
 	}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
@@ -129,10 +157,28 @@ public:
 			if(distance(target, *p, {}) <= eps)
 				neighbours.emplace_back(p);
 
-		for(Page* adjPage : page.adjacent)
-			for(Point* p : adjPage->points)
-				if(distance(target, *p, {}) <= eps)
-					neighbours.emplace_back(p);
+		for(Page* adjPage : page.adjacent) {
+			int dimPage = (target[rDims[0]] - min[rDims[0]]) / eps;
+			Point& adjP = *adjPage->points.front();
+			int pDimPage = (adjP[rDims[0]] - min[rDims[0]]) / eps;
+			if(pDimPage > dimPage) 
+				for(auto it = adjPage->points.begin(); it != adjPage->points.end(); ++it) {
+					if(std::abs(target[rDims[0]] - (**it)[rDims[0]]) > eps) break;
+					if(distance(target, **it, {}) <= eps)
+						neighbours.emplace_back(*it);
+				}
+			else if(pDimPage < dimPage)
+				for(auto it = adjPage->points.rbegin(); it != adjPage->points.rend(); ++it) {
+					if(std::abs(target[rDims[0]] - (**it)[rDims[0]]) > eps) break;
+					if(distance(target, **it, {}) <= eps)
+						neighbours.emplace_back(*it);
+				}
+			else 
+				for(Point* p : adjPage->points)
+					if(distance(target, *p, {}) <= eps)
+						neighbours.emplace_back(p);
+			
+		}
 
 		return neighbours;
 	}
