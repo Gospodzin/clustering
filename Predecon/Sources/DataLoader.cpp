@@ -47,22 +47,40 @@ void DataLoader::strToPoint(std::string& line, Point& point) {
     for(unsigned start = 0, end = 0; end < l; ++end)
         if(line[end] == ' ' || line[end] == '\0') {
             line[end] = '\0';
-            point.emplace_back(parseDouble(line.c_str() + start));
+            //point.emplace_back(parseDouble(line.c_str() + start));
+			point.emplace_back(std::atof(line.c_str() + start)); // supports scientific notation
             start = end + 1;
         }
 }
 
-std::vector<Point>* DataLoader::load() {
+void DataLoader::readHeaders(std::string headers, Data& data) {
+	boost::tokenizer<boost::char_separator<char>> tokens(headers, boost::char_separator<char>(" "));
+	for(const auto& header : tokens) data.headers.emplace_back(header);
+}
+
+void DataLoader::defaultHeaders(Data& data) {
+    for(int dim=0; dim < data.dimensions(); ++dim) data.headers.emplace_back(std::to_string(dim));
+}
+
+int DataLoader::countPoints(std::string& dataString, bool headers) {
+    int pointsCount = std::count(dataString.begin(), dataString.end(), '\n');
+    if(dataString.back() != '\n') ++pointsCount;
+    if(headers) --pointsCount;
+
+    return pointsCount;
+}
+
+Data* DataLoader::load(bool headers) {
     LOG("Loading data...");
     TS();
     std::string dataString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::istrstream dataStream(dataString.c_str(), dataString.length());
-    int pointsCount = std::count(dataString.begin(), dataString.end(), '\n');
-    if(dataString.back() != '\n') ++pointsCount;
-    std::vector<Point>* data = new std::vector<Point>(pointsCount, Point(dimsCount, -1));
+    int pointsCount = countPoints(dataString, headers);
+    Data* data = new Data(pointsCount, Point(dimsCount, -1));
     std::string line;
-    while (std::getline(dataStream, line))
-        strToPoint(line, data->at(idCarrier));
+	if(headers && std::getline(dataStream, line)) readHeaders(line, *data);
+    while (std::getline(dataStream, line)) strToPoint(line, data->at(idCarrier));
+    if(!headers) defaultHeaders(*data);
     TP();
 
     return data;

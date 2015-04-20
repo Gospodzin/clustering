@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Point.h"
+#include "Data.h"
 #include "measures.h"
 #include <sstream>
 
@@ -94,7 +94,7 @@ public:
 
 private:
 	Data& data;
-	std::vector<Point> samples;
+	Data samples;
 
 	/* Selects n samples from data */
 	Data& getSamples(int n);

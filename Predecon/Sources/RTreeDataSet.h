@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "Data.h"
 #include "DataSet.h"
 #include "referenceSelectors.h"
 
@@ -12,6 +13,7 @@ private:
 	Point max;
 	void** rTree = NULL;
 	int dims;
+	double eps;
 	int* pagesCounts;
 	std::vector<int> rDims;
 	std::vector<double> deviations;
@@ -68,15 +70,7 @@ private:
 	void calcDeviations() {
 		LOG("Calc deviations...");
 		TS();
-		std::vector<double> means(data->front().size());
-		for(Point& p : *data)
-			std::transform(p.begin(), p.end(), means.begin(), means.begin(), std::plus<double>());
-		std::transform(means.begin(), means.end(), means.begin(), [&](double m) -> double { return m / data->size(); });
-
-		deviations.resize(data->front().size());
-		for(Point& p : *data)
-			for(int i = 0; i < p.size(); ++i)
-				deviations[i] += std::abs(p[i] - means[i]);
+		deviations = utils::calcMeanDeviations(*data);
 		sortedAttr.resize(dimensions());
 		for(int i = 0; i < dimensions(); ++i) sortedAttr[i] = i;
 		std::sort(sortedAttr.begin(), sortedAttr.end(), [&](int a, int b) -> bool { return deviations[a]>deviations[b]; });
@@ -103,14 +97,17 @@ private:
 	}
 
 public:
-	RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, double eps) : DataSet(data, measureId) {
+	struct Params {
+		double eps;
+		int dims;
+	};
+
+    RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, Params params) : DataSet(data, measureId), dims(params.dims), eps(params.eps) {
 		LOG("Creating RTree...");
 		TS();
 		// init;
 		calcDeviations();
-		int n = 3 > dimensions() ? dimensions() : 3;
-		for(int i=0; i < n; ++i) rDims.push_back(sortedAttr[i]);
-		dims = rDims.size();
+        for(int i=0; i < dims; ++i) rDims.emplace_back(sortedAttr[i]);
 
 		min = referenceSelectors::min(*data);
 		max = referenceSelectors::max(*data);

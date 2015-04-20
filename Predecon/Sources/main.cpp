@@ -75,11 +75,41 @@ int main(int ac, char* av[])
 	//subclu.compute();
 
 	Data* data = DataLoader("dense_d56_r96367_cup98_quarter.txt").load();
-	double eps = 20;
-	RTreeDataSet dataSet(data, measures::Euclidean, eps);
-	//TIDataSet dataSet(data, measures::Euclidean, referenceSelectors::max);
-	Dbscan<RTreeDataSet> dbscan(&dataSet, eps, 5);
-	dbscan.compute();
+	Data d = utils::pca(*data, 2);
+
+	TS();
+	//utils::maxVarDir(*data);
+	TP();
+	/*auto max = referenceSelectors::max(*data);
+	auto min = referenceSelectors::min(*data);
+
+	std::stringstream ss;
+	for(Point& p : *data) {
+		bool first = true;
+		for(int i = 0; i < data->dimensions(); ++i)
+			if(max[i] != min[i]) {
+				ss << (first ? "" : " ") << p[i];
+				first = false;
+			}
+		ss << std::endl;
+	}
+	DataWriter("out.txt").write(ss.str());*/
+	/*std::vector<Point> sample = utils::randomSample(*data, 10000);
+
+	auto means = utils::calcMeans(*data);
+	std::stringstream ss;
+	ss << "param n:="<<sample.size()<<";\r\n"
+		"param d:="<<data->dimensions()<<";\r\n"
+		"param r : 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 :=\r\n";
+	int id = 1;
+	for(auto& p : sample) {
+		ss << id++;
+		for(int i = 0; i < data->dimensions(); ++i)
+			ss << " " << p[i] - means[i];
+		ss << std::endl;
+	}
+	ss << ";";
+	DataWriter("out.txt").write(ss.str());*/
 	system("pause");
 	//tests::runTests();
 	return 0;

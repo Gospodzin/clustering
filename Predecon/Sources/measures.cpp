@@ -1,7 +1,6 @@
 #include "measures.h"
 
 namespace measures{
-    std::vector<int> attrs {0 ,1};
 	double euclideanDistance(const Point& p1, const Point& p2) {
         double res = 0;
         for (int i = 0; i < (int)(int)p1.size(); ++i) {
