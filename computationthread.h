@@ -36,25 +36,10 @@ private:
         for(Point& p : *data) p.cid = NONE;
 
         switch(sets.algorithm) {
-        case DBSCAN:
-            switch(sets.dataStructure) {
-            case BASIC: runDbscan<BasicDataSet, int>(data.get(), sets, 0); break;
-            case TI: runDbscan<TIDataSet, referenceSelectors::ReferenceSelector>(data.get(), sets, referenceSelectors::max); break;
-            case PL: runDbscan<PLDataSet, int>(data.get(), sets, sets.n); break;
-            case RTree: runDbscan<RTreeDataSet, RTreeDataSet::Params>(data.get(), sets, {sets.eps, sets.n}); break;
-            } break;
-        case PREDECON:
-            switch(sets.dataStructure) {
-            case BASIC: runPredecon<BasicDataSet>(data.get(), sets); break;
-            case TI: runPredecon<TIDataSet>(data.get(), sets); break;
-            } break;
-        case SUBCLU:
-            switch(sets.dataStructure) {
-            case BASIC: runSubclu<BasicDataSet>(data.get(), sets); break;
-            case TI: runSubclu<TIDataSet>(data.get(), sets); break;
-            } break;
-        case QSCAN:
-            runQscan(data.get(), sets);
+        case DBSCAN: runAlgorithm<Dbscan>(sets); break;
+        case PREDECON: runAlgorithm<Predecon>(sets); break;
+        case SUBCLU: runAlgorithm<Subclu>(sets); break;
+        case QSCAN: runQscan(data.get(), sets); break;
         }
     }
 
@@ -78,38 +63,47 @@ private:
         this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
     }
 
-    template <typename T>
-    void runSubclu(std::vector<Point>* data, Settings sets) {
-        long start = clock();
-        Subclu<T> subclu(data, sets.eps, sets.mi, sets.odc);
-        subclu.compute();
-        result = subclu.getClusters();
-        subclu.clean();
-        this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
+
+    template<template<typename> class T>
+    void runAlgorithm(Settings sets) {
+        measures::MeasureId measureId = getMeasureId(sets.measure);
+        switch(sets.dataStructure) {
+        case BASIC: runAlgorithm<T, BasicDataSet>(data.get(), sets, {measureId}); break;
+        case TI:    runAlgorithm<T, TIDataSet>(data.get(), sets, {measureId, referenceSelectors::max}); break;
+        case PL:    runAlgorithm<T, PLDataSet>(data.get(), sets, {measureId, sets.n}); break;
+        case RTree: runAlgorithm<T, RTreeDataSet>(data.get(), sets, {measureId, sets.eps, sets.n}); break;
+        }
     }
 
-    template<typename T, typename K>
-    void runDbscan(Data* data, Settings sets, K param) {
-        long start = clock();
-        T dataSet(data, getMeasureId(sets.measure), param);
-        Dbscan<T> dbscan(&dataSet, sets.eps, sets.mi);
-        dbscan.compute();
-        result = dbscan.getClusters();
-        dbscan.clean();
-        this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
+    template<template<typename> class T, class K>
+    void runAlgorithm(Data* data, Settings sets, DataSet::Params params) {
+        RunAlgorithmImpl<T, K>::call(this, data, sets, params);
     }
 
-    template<typename T>
-    void runPredecon(std::vector<Point>* data, Settings sets) {
-        long start = clock();
-        T dataSet(data, getMeasureId(sets.measure), referenceSelectors::max);
-        Predecon<T> predecon(&dataSet, sets.eps, sets.mi, sets.delta, sets.lambda);
-        predecon.compute();
-        result = predecon.getClusters();
-        predecon.clean();
-        this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
-    }
+    template<template<typename> class T, class K>
+    struct RunAlgorithmImpl {
+      static void call(ComputationThread* thiz, Data* data, Settings sets, DataSet::Params params) {
+          long start = clock();
+          K dataSet(data, params);
+          T<K> algorithm(&dataSet, {sets.eps, sets.mi, sets.delta, sets.lambda});
+          algorithm.compute();
+          thiz->result = algorithm.getClusters();
+          algorithm.clean();
+          thiz->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
+      }
+    };
 
+    template<class K>
+    struct RunAlgorithmImpl<Subclu, K> {
+      static void call(ComputationThread* thiz, Data* data, Settings sets, DataSet::Params params) {
+          long start = clock();
+          Subclu<K> subclu(data, {sets.eps, sets.mi, params, sets.odc});
+          subclu.compute();
+          thiz->result = subclu.getClusters();
+          subclu.clean();
+          thiz->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
+      }
+    };
 
     void run()
     {

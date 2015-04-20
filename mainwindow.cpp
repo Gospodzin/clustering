@@ -319,10 +319,10 @@ Settings MainWindow::collectSettings() {
 
     Settings sets;
 
-    if(algorithm == "PREDECON") sets.algorithm = Algorithm::PREDECON;
-    else if(algorithm == "DBSCAN") sets.algorithm = Algorithm::DBSCAN;
-    else if(algorithm == "SUBCLU") sets.algorithm = Algorithm::SUBCLU;
-    else if(algorithm == "QSCAN") sets.algorithm = Algorithm::QSCAN;
+    if(algorithm == "PREDECON") sets.algorithm = AlgorithmId::PREDECON;
+    else if(algorithm == "DBSCAN") sets.algorithm = AlgorithmId::DBSCAN;
+    else if(algorithm == "SUBCLU") sets.algorithm = AlgorithmId::SUBCLU;
+    else if(algorithm == "QSCAN") sets.algorithm = AlgorithmId::QSCAN;
     else {QMessageBox::warning(NULL, "Warning!", "No such algorithm!"); throw -1;}
 
     if(dataStructure == "TI") sets.dataStructure = DataStructure::TI;
@@ -409,6 +409,7 @@ void MainWindow::updateDataBySubspace(Subspace subspace) {
 void MainWindow::on_terminateButton_clicked() {
     if(compThread.isRunning()) {
         compThread.terminate();
+        while(!logging::LOG::ticks.empty()) logging::LOG::ticks.pop();
         ui->computeButton->setEnabled(true);
     }
 }

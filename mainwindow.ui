@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>942</width>
+    <width>1200</width>
     <height>676</height>
    </rect>
   </property>
@@ -19,8 +19,8 @@
      <rect>
       <x>700</x>
       <y>23</y>
-      <width>231</width>
-      <height>451</height>
+      <width>241</width>
+      <height>611</height>
      </rect>
     </property>
    </widget>
@@ -56,18 +56,18 @@
    <widget class="QTextBrowser" name="logBrowser">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>495</y>
-      <width>231</width>
-      <height>141</height>
+      <x>950</x>
+      <y>23</y>
+      <width>241</width>
+      <height>611</height>
      </rect>
     </property>
    </widget>
    <widget class="QLabel" name="label_11">
     <property name="geometry">
      <rect>
-      <x>700</x>
-      <y>475</y>
+      <x>950</x>
+      <y>5</y>
       <width>61</width>
       <height>16</height>
      </rect>
@@ -212,8 +212,8 @@
    <widget class="QPushButton" name="clearLogButton">
     <property name="geometry">
      <rect>
-      <x>870</x>
-      <y>475</y>
+      <x>1130</x>
+      <y>4</y>
       <width>61</width>
       <height>20</height>
      </rect>
@@ -287,12 +287,12 @@
      </property>
      <item>
       <property name="text">
-       <string>SUBCLU</string>
+       <string>DBSCAN</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>DBSCAN</string>
+       <string>SUBCLU</string>
       </property>
      </item>
      <item>
@@ -343,17 +343,17 @@
      </property>
      <item>
       <property name="text">
-       <string>RTree</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
        <string>PL</string>
       </property>
      </item>
      <item>
       <property name="text">
        <string>TI</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>RTree</string>
       </property>
      </item>
      <item>
@@ -423,7 +423,7 @@
     </widget>
     <widget class="QCheckBox" name="odcCheckBox">
      <property name="enabled">
-      <bool>false</bool>
+      <bool>true</bool>
      </property>
      <property name="geometry">
       <rect>
@@ -477,6 +477,9 @@
      </property>
     </widget>
     <widget class="QLineEdit" name="nBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>100</x>
@@ -923,7 +926,7 @@
       </rect>
      </property>
      <property name="text">
-      <string>C:/Users/Gospo/Documents/Qt/dense_d56_r96367_cup98_quarter.txt</string>
+      <string>C:/Users/Gospo/Documents/Qt/dense_d56_r96367_cup98.txt</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pcaButton">
@@ -1020,7 +1023,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>942</width>
+     <width>1200</width>
      <height>21</height>
     </rect>
    </property>
@@ -1036,6 +1039,46 @@
    <container>1</container>
   </customwidget>
  </customwidgets>
+ <tabstops>
+  <tabstop>browseButton</tabstop>
+  <tabstop>loadButton</tabstop>
+  <tabstop>headersCheckBox</tabstop>
+  <tabstop>dataFileBox</tabstop>
+  <tabstop>browseOutputButton</tabstop>
+  <tabstop>outputFileCheckBox</tabstop>
+  <tabstop>outputFileBox</tabstop>
+  <tabstop>pcaButton</tabstop>
+  <tabstop>pcaDimsBox</tabstop>
+  <tabstop>undoPcaButton</tabstop>
+  <tabstop>computeButton</tabstop>
+  <tabstop>terminateButton</tabstop>
+  <tabstop>drawCheckBox</tabstop>
+  <tabstop>sizeBox</tabstop>
+  <tabstop>dimensionsBox</tabstop>
+  <tabstop>maxMDDimBox</tabstop>
+  <tabstop>dataInfoTable</tabstop>
+  <tabstop>xSelect</tabstop>
+  <tabstop>ySelect</tabstop>
+  <tabstop>pointSizeBox</tabstop>
+  <tabstop>subspaceSelect</tabstop>
+  <tabstop>refreshButton</tabstop>
+  <tabstop>algorithmSelect</tabstop>
+  <tabstop>dataStructureSelect</tabstop>
+  <tabstop>nBox</tabstop>
+  <tabstop>odcCheckBox</tabstop>
+  <tabstop>measureSelect</tabstop>
+  <tabstop>epsBox</tabstop>
+  <tabstop>miBox</tabstop>
+  <tabstop>deltaBox</tabstop>
+  <tabstop>lambdaBox</tabstop>
+  <tabstop>selectedClusterIdBox</tabstop>
+  <tabstop>selectedClusterSizeBox</tabstop>
+  <tabstop>selectedPointView</tabstop>
+  <tabstop>outputBrowser</tabstop>
+  <tabstop>writeOutCheckBox</tabstop>
+  <tabstop>logBrowser</tabstop>
+  <tabstop>clearLogButton</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

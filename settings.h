@@ -2,7 +2,7 @@
 #include <QString>
 #include "Subspace.h"
 
-enum Algorithm {
+enum AlgorithmId {
     DBSCAN,
     PREDECON,
     SUBCLU,
@@ -22,7 +22,7 @@ enum Measure {
 };
 
 struct Settings {
-    Algorithm algorithm;
+    AlgorithmId algorithm;
     DataStructure dataStructure;
     Measure measure;
     double eps;
