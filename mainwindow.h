@@ -7,6 +7,7 @@
 #include "settings.h"
 #include "clustering.h"
 #include "computationthread.h"
+#include "datastatsthread.h"
 #include "loaddatathread.h"
 #include "guilogger.h"
 #include "qcustomplot.h"
@@ -32,6 +33,7 @@ private slots:
 
     void update();
     void dataLoaded();
+    void statsComputed();
     void log(QString msg);
     void plotClick(QMouseEvent* mouseEvent);
 
@@ -39,11 +41,31 @@ private slots:
 
     void on_clearLogButton_clicked();
 
+    void on_selectRefPointButton_clicked();
+
+    void on_dataInfoTable_sectionDoubleClicked(int logicalIndex);
+
+    void on_dataStructureSelect_currentTextChanged(const QString &arg1);
+
+    void on_browseOutputButton_clicked();
+
+    void on_outputFileCheckBox_toggled(bool checked);
+
+    void on_pcaButton_clicked();
+
+    void on_undoPcaButton_clicked();
+
 private:
     ComputationThread compThread;
     LoadDataThread loadThread;
+    DataStatsThread statsThread;
+
     GuiLogger logger;
     std::map<std::string, Subspace> stringToSubspace;
+
+    bool selectRefPoint = false;
+    bool refPointSelected = false;
+    Point refPoint;
 
     Point* selectedPoint = NULL;
     QCPScatterStyle oldScatterStyle;
@@ -56,6 +78,7 @@ private:
     DrawSettings collectDrawSettings();
 
     void draw(std::vector<Point>& data, DrawSettings sets);
+    void fillStatsTable(std::vector<int> dims);
     void updateDataBySubspace(Subspace subspace);
     void updateSubspaceSelect();
     void updateDimensionSelects();
@@ -63,6 +86,7 @@ private:
     void updateSelectedClusterView();
     void selectPoint(QMouseEvent* mouseEvent);
     void updateStats();
+    void keyPressEvent(QKeyEvent* e);
 };
 
 #endif // MAINWINDOW_H

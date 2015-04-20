@@ -14,17 +14,20 @@
 #include "utils.h"
 
 MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    ui(new Ui::MainWindow) {
+    QMainWindow(parent),ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
     ui->logBrowser->document()->setMaximumBlockCount(100);
     logging::LOG::out = &logger;
 
+    connect(ui->dataInfoTable->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(on_dataInfoTable_sectionDoubleClicked(int)));
+    connect(&statsThread, SIGNAL(done()), this, SLOT(statsComputed()));
     connect(&compThread, SIGNAL(computed()), this, SLOT(update()));
     connect(&loadThread, SIGNAL(loaded()), this, SLOT(dataLoaded()));
     connect(&logger, SIGNAL(logSignal(QString)), this, SLOT(log(QString)));
     connect(ui->plotView, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotClick(QMouseEvent*)));
+
+    ui->outputFileBox->setText(QDir::currentPath() + "/out.txt");
 }
 
 MainWindow::~MainWindow() {
@@ -34,7 +37,23 @@ MainWindow::~MainWindow() {
 void MainWindow::dataLoaded() {
     ui->loadButton->setEnabled(true);
     ui->computeButton->setEnabled(true);
+
+    statsThread.start(loadThread.data);
 }
+
+void MainWindow::statsComputed() {
+    ui->dimensionsBox->setText(QString::number(statsThread.data->dimensions()));
+    ui->sizeBox->setText(QString::number(statsThread.data->size()));
+    int maxMDDim = std::distance(statsThread.meanDeviations.begin(), std::max_element(statsThread.meanDeviations.begin(), statsThread.meanDeviations.end()));
+    ui->maxMDDimBox->setText(QString::fromStdString(statsThread.data->headers[maxMDDim]));
+
+    ui->dataInfoTable->clearContents();
+    ui->dataInfoTable->setColumnCount(statsThread.data->dimensions());
+    std::vector<int> dims(statsThread.data->dimensions());
+    std::iota(dims.begin(), dims.end(), 0);
+    fillStatsTable(dims);
+}
+
 
 void MainWindow::log(QString msg) {
     ui->logBrowser->append(msg);
@@ -55,6 +74,8 @@ void MainWindow::update() {
         ui->plotView->clearGraphs();
         ui->plotView->replot();
     }
+    if(ui->outputFileCheckBox->isChecked())
+        DataWriter(ui->outputFileBox->text().toStdString()).write(DataWriter::write(compThread.result));
 }
 
 void MainWindow::updateStats() {
@@ -105,7 +126,7 @@ void MainWindow::on_computeButton_clicked() {
     try {
         Settings sets = collectSettings();
         ui->computeButton->setEnabled(false);
-        compThread.startWithSets(sets, loadThread.data);
+        compThread.start(sets, statsThread.data);
     } catch(...) {}
 }
 
@@ -174,13 +195,14 @@ void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
 
 void MainWindow::updateSelectedClusterView() {
     if(selectedPoint == NULL) {
-        ui->selectedClusterView->clearContents();
+        ui->selectedClusterIdBox->clear();
+        ui->selectedClusterSizeBox->clear();
     } else {
         int cid = selectedPoint->cid;
         Clusters clusters = compThread.result[lastDrawSets.subspace];
         Cluster* cluster = cid == NOISE ? NULL : clusters[cid];
-        ui->selectedClusterView->setItem(0, 0, new QTableWidgetItem(cid == NOISE ? "N" : QString::number(cid)));
-        ui->selectedClusterView->setItem(1, 0, new QTableWidgetItem(QString::number( cid == NOISE ? utils::countNoise(clusters, compThread.data.get()) : cluster->points.size())));
+        ui->selectedClusterIdBox->setText(cid == NOISE ? "N" : QString::number(cid));
+        ui->selectedClusterSizeBox->setText(QString::number( cid == NOISE ? utils::countNoise(clusters, compThread.data.get()) : cluster->points.size()));
     }
 }
 
@@ -293,6 +315,7 @@ Settings MainWindow::collectSettings() {
     QString lambda = ui->lambdaBox->text();
     std::string path = ui->dataFileBox->text().toStdString();
     bool odc = ui->odcCheckBox->isChecked();
+    QString n = ui->nBox->text();
 
     Settings sets;
 
@@ -304,6 +327,8 @@ Settings MainWindow::collectSettings() {
 
     if(dataStructure == "TI") sets.dataStructure = DataStructure::TI;
     else if(dataStructure == "BASIC") sets.dataStructure = DataStructure::BASIC;
+    else if(dataStructure == "PL") sets.dataStructure = DataStructure::PL;
+    else if(dataStructure == "RTree") sets.dataStructure = DataStructure::RTree;
     else {QMessageBox::warning(NULL, "Warning!", "No such data structure!"); throw -1;}
 
     if(measure == "EUCLIDEAN") sets.measure = Measure::EUCLIDEAN;
@@ -330,6 +355,10 @@ Settings MainWindow::collectSettings() {
     sets.path = path;
 
     sets.odc = odc;
+
+    tmpI = n.toInt(&ok);
+    if(ok) sets.n = tmpI;
+    else {QMessageBox::warning(NULL, "Warning!", "Bad n value!"); throw -1;}
 
     return sets;
 }
@@ -358,7 +387,8 @@ void MainWindow::on_algorithmSelect_currentTextChanged(const QString &val)
 void MainWindow::on_loadButton_clicked() {
     ui->loadButton->setEnabled(false);
     std::string path = ui->dataFileBox->text().toStdString();
-    loadThread.startWitPath(path);
+    bool headers = ui->headersCheckBox->isChecked();
+    loadThread.start(path, headers);
 }
 
 void MainWindow::on_refreshButton_clicked() {
@@ -385,4 +415,61 @@ void MainWindow::on_terminateButton_clicked() {
 
 void MainWindow::on_clearLogButton_clicked() {
     ui->logBrowser->clear();
+}
+
+void MainWindow::on_selectRefPointButton_clicked() {
+    // cancel on second click
+    if(selectRefPoint) selectRefPoint = false, selectedPoint = false;
+    else selectRefPoint = true;
+}
+
+void MainWindow::on_dataInfoTable_sectionDoubleClicked(int logicalIndex){
+    ui->dataInfoTable->clearContents();
+    ui->dataInfoTable->setColumnCount(statsThread.data->dimensions());
+    std::vector<int> dims(statsThread.data->dimensions());
+    std::iota(dims.begin(), dims.end(), 0);
+    LOG(std::to_string(logicalIndex));
+    if(logicalIndex == 1) std::sort(dims.begin(), dims.end(), [&](int d1, int d2) { return statsThread.meanDeviations[d1] > statsThread.meanDeviations[d2];});
+    if(logicalIndex == 2) std::sort(dims.begin(), dims.end(), [&](int d1, int d2) { return statsThread.standardDeviations[d1] > statsThread.standardDeviations[d2];});
+    fillStatsTable(dims);
+}
+
+void MainWindow::fillStatsTable(std::vector<int> dims) {
+    for(int i = 0 ; i < dims.size(); ++i) {
+        ui->dataInfoTable->setItem(0, i, new QTableWidgetItem(QString::fromStdString(statsThread.data->headers[dims[i]])));
+        ui->dataInfoTable->setItem(1, i, new QTableWidgetItem(QString::number(statsThread.meanDeviations[dims[i]])));
+        ui->dataInfoTable->setItem(2, i, new QTableWidgetItem(QString::number(statsThread.standardDeviations[dims[i]])));
+        ui->dataInfoTable->setItem(3, i, new QTableWidgetItem(QString::number(statsThread.means[dims[i]])));
+        ui->dataInfoTable->setItem(4, i, new QTableWidgetItem(QString::number(statsThread.mins[dims[i]])));
+        ui->dataInfoTable->setItem(5, i, new QTableWidgetItem(QString::number(statsThread.maxs[dims[i]])));
+    }
+}
+
+void MainWindow::on_dataStructureSelect_currentTextChanged(const QString &val) {
+    if(val.toStdString() == "RTree" || val.toStdString() == "PL") ui->nBox->setEnabled(true);
+    else ui->nBox->setEnabled(false);
+}
+
+void MainWindow::on_browseOutputButton_clicked() {
+    QString fileName = QFileDialog::getSaveFileName(this, tr("Select Output"));
+    ui->outputFileBox->setText(fileName);
+}
+
+void MainWindow::on_outputFileCheckBox_toggled(bool checked) {
+    ui->browseOutputButton->setEnabled(checked);
+    ui->outputFileBox->setEnabled(checked);
+}
+
+void MainWindow::keyPressEvent(QKeyEvent* e){
+    if(e->key() == Qt::Key_Return && ui->computeButton->isEnabled()) on_computeButton_clicked();
+}
+
+void MainWindow::on_pcaButton_clicked() {
+    bool ok;
+    int dims = ui->pcaDimsBox->text().toInt(&ok);
+    if(ok) statsThread.start(std::shared_ptr<Data>(utils::pca(*loadThread.data, dims)));
+}
+
+void MainWindow::on_undoPcaButton_clicked() {
+    statsThread.start(loadThread.data);
 }

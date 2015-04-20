@@ -22,6 +22,8 @@ SOURCES += main.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/measures.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Point.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/referenceSelectors.cpp \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/libpca/pca.cpp \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/libpca/utils.cpp \
     qcustomplot/qcustomplot.cpp
 
 FORMS    += mainwindow.ui
@@ -50,12 +52,24 @@ HEADERS +=     mainwindow.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Subclu.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/SubcluUI.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/TIDataSet.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/PLDataSet.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/RTreeDataSet.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/UI.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Data.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/libpca/pca.h \
     guilogger.h \
     computationthread.h \
     loaddatathread.h \
-    qcustomplot/qcustomplot.h
+    qcustomplot/qcustomplot.h \
+    datastatsthread.h
 
 INCLUDEPATH += C:/Utils/boost_1_55_0 \
             C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources \
-            C:/Users/Gospo/Documents/Qt/Clustering/qcustomplot
+            C:/Users/Gospo/Documents/Qt/Clustering/qcustomplot \
+            C:/Utils/Eigen \
+            C:/Utils/armadillo/include
+
+
+
+LIBS += C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/lib/cbia.lib.blas.dyn.rel.x86.12.lib \
+        C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/lib/cbia.lib.lapack.dyn.rel.x86.12.lib

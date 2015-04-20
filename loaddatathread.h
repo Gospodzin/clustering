@@ -6,6 +6,8 @@
 
 #include "DataLoader.h"
 #include "settings.h"
+#include "utils.h"
+#include "referenceSelectors.h"
 
 class LoadDataThread : public QThread
 {
@@ -14,18 +16,22 @@ signals:
     void loaded();
 public:
     std::string path;
+    bool headers;
+
     std::shared_ptr<Data> data;
+
     double totalTime;
 
-    void startWitPath(std::string path) {
+    void start(std::string path, bool headers) {
         this->path = path;
-        start();
+        this->headers = headers;
+        QThread::start();
     }
 
 private:
     void run() {
         long start = clock();
-        data = std::shared_ptr<Data>(DataLoader(path).load());
+        data = std::shared_ptr<Data>(DataLoader(path).load(headers));
         this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
         emit loaded();
     }

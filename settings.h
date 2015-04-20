@@ -11,7 +11,9 @@ enum Algorithm {
 
 enum DataStructure {
     BASIC,
-    TI
+    TI,
+    PL,
+    RTree
 };
 
 enum Measure {
@@ -29,6 +31,7 @@ struct Settings {
     int lambda;
     std::string path;
     bool odc;
+    int n;
 };
 
 class MainWindow;

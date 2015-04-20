@@ -10,6 +10,8 @@
 #include "DataLoader.h"
 #include "DataWriter.h"
 #include "Qscan.h"
+#include "PLDataSet.h"
+#include "RTreeDataSet.h"
 
 class ComputationThread : public QThread
 {
@@ -23,10 +25,10 @@ public:
     std::map<Subspace, Clusters> result;
     double totalTime;
 
-    void startWithSets(Settings sets, std::shared_ptr<Data> data) {
+    void start(Settings sets, std::shared_ptr<Data> data) {
         this->sets = sets;
         this->data = data;
-        start();
+        QThread::start();
     }
 
 private:
@@ -36,8 +38,10 @@ private:
         switch(sets.algorithm) {
         case DBSCAN:
             switch(sets.dataStructure) {
-            case BASIC: runDbscan<BasicDataSet>(data.get(), sets); break;
-            case TI: runDbscan<TIDataSet>(data.get(), sets); break;
+            case BASIC: runDbscan<BasicDataSet, int>(data.get(), sets, 0); break;
+            case TI: runDbscan<TIDataSet, referenceSelectors::ReferenceSelector>(data.get(), sets, referenceSelectors::max); break;
+            case PL: runDbscan<PLDataSet, int>(data.get(), sets, sets.n); break;
+            case RTree: runDbscan<RTreeDataSet, RTreeDataSet::Params>(data.get(), sets, {sets.eps, sets.n}); break;
             } break;
         case PREDECON:
             switch(sets.dataStructure) {
@@ -84,10 +88,10 @@ private:
         this->totalTime = double(clock() - start) / CLOCKS_PER_SEC;
     }
 
-    template<typename T>
-    void runDbscan(std::vector<Point>* data, Settings sets) {
+    template<typename T, typename K>
+    void runDbscan(Data* data, Settings sets, K param) {
         long start = clock();
-        T dataSet(data, getMeasureId(sets.measure), referenceSelectors::max);
+        T dataSet(data, getMeasureId(sets.measure), param);
         Dbscan<T> dbscan(&dataSet, sets.eps, sets.mi);
         dbscan.compute();
         result = dbscan.getClusters();
