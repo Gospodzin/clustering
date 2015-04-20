@@ -125,7 +125,7 @@ private:
 
 	template<typename T>
 	std::map<Subspace, Clusters> performSubclu(std::vector<Point>* data, Settings sets) {
-		Subclu<T> subclu(data, sets.eps, sets.mi);
+		Subclu<T> subclu(data, {sets.eps, sets.mi, DataSet::Params(measures::Euclidean, referenceSelectors::max)});
 		subclu.compute();
 		return subclu.clustersBySubspace;
 	}

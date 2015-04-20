@@ -3,16 +3,32 @@
 #include "Point.h"
 #include "measures.h"
 #include "logging.h"
+#include "referenceSelectors.h"
 
 struct DataSet
 {
+	struct Params {
+		Params() {}
+		Params(measures::MeasureId measureId) : measureId(measureId) {}
+		Params(measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector) : measureId(measureId), referenceSelector(referenceSelector) {}
+		Params(measures::MeasureId measureId, int n) : measureId(measureId), n(n) {}
+		Params(measures::MeasureId measureId, double eps, int n) : measureId(measureId), eps(eps), n(n) {}
+
+		measures::MeasureId measureId;
+		double eps;
+		int n;
+		referenceSelectors::ReferenceSelector referenceSelector = NULL;
+		Point reference;
+		std::vector<int> attrs = {};
+	};
+
 	std::vector<Point>* data;
 	measures::Measure measure;
 	measures::AttrsMeasure attrsMeasure;
 	measures::MeasureId measureId;
 
-	DataSet(std::vector<Point>* data, measures::MeasureId measureId) : data(data), measureId(measureId), 
-		measure(measures::getMeasure(measureId)), attrsMeasure(measures::getAttrsMeasure(measureId)) {}
+	DataSet(std::vector<Point>* data, Params params) : data(data), measureId(params.measureId), 
+        measure(measures::getMeasure(params.measureId)), attrsMeasure(measures::getAttrsMeasure(params.measureId)) {}
 
 	int dimensions() const { return data->empty() ? -1 : data->front().size(); }
 	int size() const { return data->size(); }

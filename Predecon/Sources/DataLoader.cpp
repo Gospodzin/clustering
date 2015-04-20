@@ -71,8 +71,7 @@ int DataLoader::countPoints(std::string& dataString, bool headers) {
 }
 
 Data* DataLoader::load(bool headers) {
-    LOG("Loading data...");
-    TS();
+    TS("Loading data...");
     std::string dataString((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
     std::istrstream dataStream(dataString.c_str(), dataString.length());
     int pointsCount = countPoints(dataString, headers);
@@ -81,7 +80,7 @@ Data* DataLoader::load(bool headers) {
 	if(headers && std::getline(dataStream, line)) readHeaders(line, *data);
     while (std::getline(dataStream, line)) strToPoint(line, data->at(idCarrier));
     if(!headers) defaultHeaders(*data);
-    TP();
+    TP("Data loaded");
 
     return data;
 }

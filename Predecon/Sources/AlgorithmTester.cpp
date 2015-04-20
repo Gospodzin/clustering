@@ -31,12 +31,12 @@ std::vector<TestData> AlgorithmTester::testPredecon(TestParams testParams) {
 
 			long start = clock();
 			if (tp.testDs == TiDS) {
-				TIDataSet dataSet = TIDataSet(&samples, tp.measureId, referenceSelectors::max);
-				Predecon<TIDataSet>(&dataSet, tp.eps, tp.mi, tp.delta, tp.lambda).compute();
+				TIDataSet dataSet = TIDataSet(&samples, DataSet::Params(tp.measureId, referenceSelectors::max));
+				Predecon<TIDataSet>(&dataSet, {tp.eps, tp.mi, tp.delta, tp.lambda}).compute();
 			}
 			else if (tp.testDs == BasicDS) {
-				BasicDataSet dataSet = BasicDataSet(&samples, tp.measureId);
-				Predecon<BasicDataSet>(&dataSet, tp.eps, tp.mi, tp.delta, tp.lambda).compute();
+				BasicDataSet dataSet = BasicDataSet(&samples, {tp.measureId});
+				Predecon<BasicDataSet>(&dataSet, {tp.eps, tp.mi, tp.delta, tp.lambda}).compute();
 			}
 			double time = double(clock() - start) / CLOCKS_PER_SEC;
 			std::map <int, int> clusters;
@@ -62,14 +62,13 @@ std::vector<TestData> AlgorithmTester::testPredecon(TestParams testParams) {
 	}
 
 void AlgorithmTester::writeTestData(std::string path, std::vector<TestData>& testDatas) {
-	LOG("Writing test data to file...");
-	TS();
+    TS("Writing test data to file...");
 	std::ofstream file(path);
 	file << TestData::labels() << std::endl;
 	for (auto& testData : testDatas)
 		file << testData.str() << std::endl;
 	file.close();
-	TP();
+    TP("Test data written");
 }
 
 

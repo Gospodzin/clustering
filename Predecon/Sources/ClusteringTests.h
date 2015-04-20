@@ -42,7 +42,7 @@ namespace tests {
 #pragma region Tests
 	void DbcanTestXY() {
 		std::vector<Point> data = getTestData();
-		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
+		TIDataSet dataSet(&data, DataSet::Params(measures::MeasureId::Euclidean, referenceSelectors::max));
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3);
 		Clusters clusters = dbscan.getClusters().begin()->second;
 
@@ -51,7 +51,7 @@ namespace tests {
 
 	void DbcanTestX() {
 		std::vector<Point> data = getTestData();
-		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
+		TIDataSet dataSet(&data, DataSet::Params(measures::MeasureId::Euclidean, referenceSelectors::max));
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3, { 0 });
 		Clusters clusters = dbscan.getClusters().begin()->second;
 
@@ -60,7 +60,7 @@ namespace tests {
 
 	void DbcanTestY() {
 		std::vector<Point> data = getTestData();
-		TIDataSet dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max);
+		TIDataSet dataSet(&data, DataSet::Params(measures::MeasureId::Euclidean, referenceSelectors::max));
 		Dbscan<TIDataSet> dbscan(&dataSet, 1.1, 3, { 1 });
 		Clusters clusters = dbscan.getClusters().begin()->second;
 

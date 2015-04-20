@@ -5,12 +5,13 @@
 #include <numeric>
 #include "Cluster.h"
 #include "utils.h"
+#include "Algorithm.h"
 
 
 template <typename T>
-class Dbscan {
+class Dbscan : public Algorithm{
 public:
-	Dbscan(T* dataSet, double eps, unsigned mi, std::vector<int> attrs = {}) : dataSet(dataSet), eps(eps), mi(mi), attrs(attrs) {}
+	Dbscan(T* dataSet, Params params) : dataSet(dataSet), eps(params.eps), mi(params.mi), attrs(params.attrs) {}
 
 	T* const dataSet;
 	const double eps;
@@ -19,10 +20,9 @@ public:
 	std::map < Subspace, Clusters > clustersBySubspace;
 
 	void compute() {
-		LOG("Performing Dbscan...");
-		TS();
+        TS("Performing Dbscan...");
 		dbscan();
-		TP();
+        TP("Dbscan performed");
 	}
 
 	std::map < Subspace, Clusters > getClusters() {

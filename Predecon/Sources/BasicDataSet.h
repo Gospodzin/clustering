@@ -2,8 +2,8 @@
 #include "DataSet.h"
 
 struct BasicDataSet : DataSet
-{
-	BasicDataSet(std::vector<Point>* data, measures::MeasureId measure, ...) : DataSet(data, measure) {}
+{	
+	BasicDataSet(std::vector<Point>* data, Params params) : DataSet(data, params) {}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) {
 		std::vector<Point*> neighbours;

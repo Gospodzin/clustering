@@ -28,10 +28,9 @@ std::string DataWriter::write(std::vector<Point>* data) {
 }
 
 void DataWriter::write(std::string str) {
-	LOG("Writing data to file...");
-	TS();
+    TS("Writing data to file...");
 	file << str;
-	TP();
+    TP("Data written");
 }
 
 std::string DataWriter::write(std::vector<Point>* data, std::vector<std::vector<int>>& prefDims) {

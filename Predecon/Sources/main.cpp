@@ -1,7 +1,6 @@
 #include "SubcluUI.h"
-#include "AlgorithmTester.h"
-#include "ClusteringTests.h"
 #include "PLDataSet.h"
+#include "Qscan.h"
 #include <numeric>
 #include <chrono>
 #include "OneDClustering.h"
@@ -75,7 +74,7 @@ int main(int ac, char* av[])
 	//subclu.compute();
 
 	Data* data = DataLoader("dense_d56_r96367_cup98_quarter.txt").load();
-	Data d = utils::pca(*data, 2);
+	Data* d = utils::pca(*data, 2);
 
 	TS();
 	//utils::maxVarDir(*data);

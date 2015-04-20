@@ -18,26 +18,24 @@ private:
 	std::vector<PointWithDistance> sortedData;
 	std::vector<int> idToSortedId;
     Point reference;
+	std::vector<int> attrs;
 
 public:
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, Point reference, std::vector<int> attrs = {}) :
-		DataSet(data, measureId), reference(reference),
-		idToSortedId(data->size()) {
-		LOG("Creating TIDataSet...")
-		TS()
+	TIDataSet(std::vector<Point>* data, Params params) : attrs(params.attrs), DataSet(data, params) {
+        TS("Creating TIDataSet...");
 		// init
+		reference = params.referenceSelector == NULL ? params.reference : params.referenceSelector(*data);
 		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
 		sortedData.reserve(data->size());
 		for (Point& p : *data) sortedData.emplace_back(p, attrs.size() == 0 ? this->measure(p, reference) : measure(p, reference, attrs));
 		// sort data
 		std::sort(sortedData.begin(), sortedData.end(), [&](const PointWithDistance& p1, const PointWithDistance& p2) -> bool {return p1.distance < p2.distance; });
 		// create id to sortedId mapping
+		idToSortedId.resize(data->size());
 		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].point.id] = i;
-		TP()
+        TP("TIDataSet created");
 	}
 	 
-	TIDataSet(std::vector<Point>* data, measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector = referenceSelectors::max, std::vector<int> attrs = {}) : TIDataSet(data, measureId, referenceSelector(*data), attrs) {}
-
     std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
         std::vector<Point*> neighbours;
         int sortedId = idToSortedId[target.id];

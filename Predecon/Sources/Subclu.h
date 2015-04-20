@@ -6,12 +6,14 @@
 #include "Dbscan.h"
 #include "ODC.h"
 #include "Subspace.h"
+#include "DataSet.h"
 
 template<typename T>
-class Subclu {
+class Subclu : Algorithm {
 public:
-	Subclu(std::vector<Point>* data, double eps, int mi, bool odc = false) : data(*data), eps(eps), mi(mi), odc(odc) {}
+	Subclu(std::vector<Point>* data, Params params) : data(*data), eps(params.eps), mi(params.mi), dataSetParams(params.dataSetParams), odc(params.odc) {}
 
+	DataSet::Params dataSetParams;
 	std::vector<Point>& data;
 	const double eps;
 	const int mi;
@@ -41,8 +43,8 @@ private:
 		Subspaces withClusters;
 		for(int a = 0; a < data.front().size(); ++a) {
 			Subspace subspace(1, a);
+            TS("Round for " + DataWriter::write(subspace));
 			Clusters clusters;
-
 			if(odc) {
 				ODC odc(&data, eps, mi, a);
 				odc.compute();
@@ -50,10 +52,13 @@ private:
 				odc.clean();
 			}
 			else {
-				T dataSet(&data, measures::MeasureId::Euclidean, referenceSelectors::max, subspace);
-				Dbscan<T> dbscan(&dataSet, eps, mi, subspace);
+				std::vector<Point> subspaceData = extractSubspace(data, subspace);
+				T dataSet(&subspaceData, dataSetParams);
+				Dbscan<T> dbscan(&dataSet, {eps, mi});
 				dbscan.compute();
-				clusters = dbscan.getClusters().begin()->second;
+				idCache.resize(subspaceData.size());
+				std::iota(idCache.begin(), idCache.end(), subspaceData.front().id);
+				clusters = convert(dbscan.getClusters().begin()->second);
 				dbscan.clean();
 			}
 
@@ -61,6 +66,7 @@ private:
 				clustersBySubspace.emplace(subspace, clusters);
 				withClusters.push_back(subspace);
 			}
+            TP("Round end");
 		}
 		// STEP 2 Generate (k+1)-D clusters from k-D clusters
 		std::map < Subspace, Clusters > totalClustersBySubspace;
@@ -74,12 +80,13 @@ private:
 
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
 			for(Subspace cand : candidates) {
+                TS("Round for " + DataWriter::write(cand));
 				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
 				for(auto cluster : clustersBySubspace[bestSub]) {
-					std::vector<Point> clusterData = getData(cluster.second);
-					T dataSet(&clusterData, measures::MeasureId::Euclidean, referenceSelectors::max, cand);
-					Dbscan<T> dbscan(&dataSet, eps, mi, cand);
+                    std::vector<Point> clusterData = utils::pca(extractSubspace(getData(cluster.second), cand));
+					T dataSet(&clusterData, dataSetParams);
+					Dbscan<T> dbscan(&dataSet, {eps, mi});
 					dbscan.compute();
 					Clusters clusters = convert(dbscan.getClusters().begin()->second);
 					dbscan.clean();
@@ -89,6 +96,7 @@ private:
 					newWithClusters.push_back(cand);
 					newClustersBySubspace.emplace(cand, candClusters);
 				}
+                TP("Round end");
 			}
 
 			if(!newClustersBySubspace.empty()) totalClustersBySubspace.insert(newClustersBySubspace.begin(), newClustersBySubspace.end());
@@ -113,6 +121,16 @@ private:
 			delete cluster.second;
 		}
 		return orgC;
+	}
+
+	std::vector<Point> extractSubspace(std::vector<Point> data, Subspace subspace) {
+		std::vector<Point> subspaceData;
+		subspaceData.reserve(data.size());
+		for(Point& p : data) {
+			subspaceData.emplace_back(Point(subspace.size(), p.id));
+			for(int& dim : subspace) subspaceData.back().emplace_back(p[dim]);
+		}
+		return subspaceData;
 	}
 
 	std::vector<Point> getData(Cluster* cluster) {

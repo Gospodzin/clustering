@@ -95,14 +95,31 @@ namespace utils {
 		Eigen::EigenSolver<Eigen::MatrixXd> es(cov);
 	}
 
+    static std::vector<Point> pca(std::vector<Point> data) {
+        TS("Performing PCA...");
+        int dims = data.front().size();
+        stats::pca pca(dims);
+        for(auto& p : data) pca.add_record(p);
+        pca.solve();
+
+        std::vector<Point> output(data.size(), Point(dims, -1));
+        for(int i = 0; i < data.size(); ++i) output[i].id = data[i].id;
+        for(int dim = 0; dim < dims; ++dim) {
+            std::vector<double> principal = pca.get_principal(dim);
+            for(int i = 0; i < data.size(); ++i)
+                output[i].emplace_back(principal[i]);
+        }
+        TP("PCA performed");
+        return output;
+    }
+
 	static Data* pca(Data& data, int dims) {
-        LOG("Performing PCA...");
-        TS();
+        TS("Performing PCA...");
 		stats::pca pca(data.dimensions());
 		for(auto& p : data) pca.add_record(p);
 		pca.solve();
 
-		Data* output = (new Data(data.size(), Point(dims, -1)));
+        Data* output = new Data(data.size(), Point(dims, -1));
 		for(int i = 0; i < data.size(); ++i) (*output)[i].id = data[i].id;
 		for(int dim = 0; dim < dims; ++dim) {
             output->headers.emplace_back("PCA" + std::to_string(dim));
@@ -110,7 +127,7 @@ namespace utils {
 			for(int i = 0; i < data.size(); ++i)
 				(*output)[i].emplace_back(principal[i]);
 		}
-        TP();
+        TP("PCA performed");
 		return output;
 	}
 }

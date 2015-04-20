@@ -12,7 +12,6 @@ private:
 	std::vector<int> idToSortedId;
     std::vector<double> deviations;
     std::vector<int> sortedAttr;
-	Point reference;
     int sortDim;
 	int n;
 
@@ -33,10 +32,8 @@ private:
 	}
 
 public:
-    PLDataSet(std::vector<Point>* data, measures::MeasureId measureId, int n, std::vector<int> attrs = {}) :
-        DataSet(data, measureId), idToSortedId(data->size()), n(n) {
-        LOG("Creating PLDataSet...");
-        TS();
+    PLDataSet(std::vector<Point>* data, Params params) : DataSet(data, params), idToSortedId(data->size()), n(params.n > dimensions() ? dimensions() : params.n) {
+        TS("Creating PLDataSet...");
         // init;
         calcDeviations();
         this->sortDim = sortedAttr[0];
@@ -48,7 +45,7 @@ public:
 		std::sort(sortedData.begin(), sortedData.end(), [&](const Point& p1, const Point& p2) -> bool {return p1[sortDim] < p2[sortDim]; });
 		// create id to sortedId mapping
 		for(int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].id] = i;
-		TP()
+        TP("PLDataSet created");
 	}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
@@ -72,10 +69,6 @@ public:
 		}
 
 		return neighbours;
-	}
-private:
-	void testPoint(Point& p, std::vector<Point>& neighbours) {
-
 	}
 };
 

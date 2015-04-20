@@ -14,11 +14,9 @@ public:
 
 
 	void compute() {
-        LOG("Performing Qscan...");
-        TS();
+        TS("Performing Qscan...");
         qscan();
-		LOG("Qscan finished...");
-		TP();
+        TP("Qscan performed");
 	}
 
     std::map < Subspace, Clusters > getClusters() {
@@ -84,8 +82,7 @@ private:
 	}
 
 	void merge(std::vector<Point>* L, std::vector<Point>* R, int divDim, double bound) {
-		LOG("Merging...");
-		TS();
+        TS("Merging...");
 		std::vector<Point>* MF = new std::vector<Point>();
 
 		for(Point& p : *data)
@@ -143,8 +140,7 @@ private:
                 for(;shift < steps.size() && p.cid > steps[shift]; ++shift);
                 p.cid -= shift;
             }
-		LOG("Finished Merging...");
-		TP();
+        TP("Finished merging");
     }
 
     void performDbscan(std::vector<Point>* data) {
@@ -153,8 +149,8 @@ private:
             idMap[i] = data->at(i).id;
             data->at(i).id = i;
         }
-		PLDataSet dataSet(data, measures::MeasureId::Euclidean, 1);
-		Dbscan<PLDataSet> dbscan(&dataSet, eps, mi);
+		PLDataSet dataSet(data, {measures::MeasureId::Euclidean, 1});
+		Dbscan<PLDataSet> dbscan(&dataSet, {eps, mi});
         dbscan.compute();
         for(int i = 0; i < data->size(); ++i) data->at(i).id = idMap[i];
     }

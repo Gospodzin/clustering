@@ -1,21 +1,21 @@
 #pragma once
 #include <stack>
 #include "logging.h"
+#include "Algorithm.h"
 
 template <typename T>
-class Predecon {
+class Predecon : public Algorithm {
 public:
-    Predecon(T* dataSet, double eps, unsigned mi, double delta, int lambda, double kappa = 1000.0) :
-        dataSet(dataSet), prefMeasure(measures::getPrefMeasure(dataSet->measureId)), eps(eps), mi(mi), delta(delta), lambda(lambda), kappa(kappa),
+    Predecon(T* dataSet, Params params) :
+        dataSet(dataSet), prefMeasure(measures::getPrefMeasure(dataSet->measureId)), eps(params.eps), mi(params.mi), delta(params.delta), lambda(params.lambda), kappa(params.kappa),
         curCid(NOISE), neighbourhoods(dataSet->size()), prefNeighbourhoods(dataSet->size()),
         allVariances(dataSet->size()), prefDimsCount(dataSet->size()), prefDims(dataSet->size()), prefVectors(dataSet->size()) {}
 
 	void compute() {
-		LOG("Performing Predecon...");
-		TS();
+        TS("Performing Predecon...");
 		init();
 		predecon();
-		TP();
+        TP("Predecon performed");
 	}
 
 	std::map < Subspace, Clusters > getClusters() {
@@ -84,17 +84,17 @@ private:
 	}
 
 	void calcNeighbourhoods() {
-		LOG("Calculating neihbourhoods...")TS()
-            for(int i = 0; i < dataSet->size(); ++i) {
-                neighbourhoods[i] = dataSet->regionQuery((*dataSet)[i], eps);
-			}
-		TP()
+        TS("Calculating neihbourhoods...");
+        for(int i = 0; i < dataSet->size(); ++i) {
+            neighbourhoods[i] = dataSet->regionQuery((*dataSet)[i], eps);
+        }
+        TP("Neihbourhoods calculated");
 	}
 
 	void calcAllVariances() {
-		LOG("Calculating variances...")TS()
-            std::for_each(dataSet->begin(), dataSet->end(), [&](const Point& p)->void {allVariances[p.id] = calcVariances(p); });
-		TP()
+        TS("Calculating variances...");
+        std::for_each(dataSet->begin(), dataSet->end(), [&](const Point& p)->void {allVariances[p.id] = calcVariances(p); });
+        TP("Variances calculated");
 	}
 
 	std::vector<double> calcVariances(const Point& p) {
@@ -113,32 +113,32 @@ private:
 	}
 
 	void calcPrefDims() {
-		LOG("Calculating preference dimensions...")TS()
-			for(size_t i = 0; i < allVariances.size(); ++i) {
-				auto& variances = allVariances[i];
-				for(size_t j = 0; j < variances.size(); ++j)
-					if(variances[j] <= delta) {
-						++prefDimsCount[i];
-						prefDims[i].push_back(j);
-					}
-			}
-		TP()
+        TS("Calculating preference dims...");
+        for(size_t i = 0; i < allVariances.size(); ++i) {
+            auto& variances = allVariances[i];
+            for(size_t j = 0; j < variances.size(); ++j)
+                if(variances[j] <= delta) {
+                    ++prefDimsCount[i];
+                    prefDims[i].push_back(j);
+                }
+        }
+        TP("Preference dims calculated");
 	}
 
 	void calcPrefVectors() {
-		LOG("Calculating preference vectors...")TS()
-			for(size_t i = 0; i < allVariances.size(); ++i) {
-				auto& prefVector = prefVectors[i];
-				auto& variances = allVariances[i];
-				prefVector.resize(variances.size());
-				for(size_t i = 0; i < variances.size(); ++i)
-					prefVector[i] = variances[i] <= delta ? kappa : 1;
-			}
-		TP()
+        TS("Calculating preference vectors...");
+        for(size_t i = 0; i < allVariances.size(); ++i) {
+            auto& prefVector = prefVectors[i];
+            auto& variances = allVariances[i];
+            prefVector.resize(variances.size());
+            for(size_t i = 0; i < variances.size(); ++i)
+                prefVector[i] = variances[i] <= delta ? kappa : 1;
+        }
+        TP("Preference vectors calculated");
 	}
 
 	void initialComputation() {
-		LOG("Marking noise points and calculatng preference neighbourhoods...")TS()
+        TS("Marking noise points and calculatng preference neighbourhoods...");
 			auto satisfiesMi = [&](std::vector<Point*>& n) -> bool {return n.size() >= mi; };
 		auto satisfiesLambda = [&](Point& p) -> bool {return prefDimsCount[p.id] <= lambda; };
 
@@ -153,7 +153,7 @@ private:
 					point.cid = NOISE;
 			}
 		}
-		TP()
+        TP("Noise points marked and pref neighbourhoods calculated");
 	}
 
 	void calcPrefNeighbourhood(Point& p) {

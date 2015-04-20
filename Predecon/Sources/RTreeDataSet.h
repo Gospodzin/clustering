@@ -6,6 +6,7 @@
 #include "Data.h"
 #include "DataSet.h"
 #include "referenceSelectors.h"
+#include "utils.h"
 
 struct RTreeDataSet : DataSet {
 private:
@@ -68,13 +69,12 @@ private:
 	}
 
 	void calcDeviations() {
-		LOG("Calc deviations...");
-		TS();
+        TS("Calc deviations...");
 		deviations = utils::calcMeanDeviations(*data);
 		sortedAttr.resize(dimensions());
 		for(int i = 0; i < dimensions(); ++i) sortedAttr[i] = i;
 		std::sort(sortedAttr.begin(), sortedAttr.end(), [&](int a, int b) -> bool { return deviations[a]>deviations[b]; });
-		TP();
+        TP("Deviations calculated");
 	}
 
 	void sortPages(void** subRTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
@@ -97,14 +97,8 @@ private:
 	}
 
 public:
-	struct Params {
-		double eps;
-		int dims;
-	};
-
-    RTreeDataSet(std::vector<Point>* data, measures::MeasureId measureId, Params params) : DataSet(data, measureId), dims(params.dims), eps(params.eps) {
-		LOG("Creating RTree...");
-		TS();
+    RTreeDataSet(std::vector<Point>* data, Params params) : DataSet(data, params), dims(params.n > dimensions() ? dimensions() : params.n), eps(params.eps) {
+        TS("Creating RTree...");
 		// init;
 		calcDeviations();
         for(int i=0; i < dims; ++i) rDims.emplace_back(sortedAttr[i]);
@@ -123,19 +117,17 @@ public:
 			emplacePoint(rTree, pagePath, pagesCounts, 0, p);
 		}
 
-		LOG("Filling adjacent pages...");
-		TS();
+        TS("Filling adjacent pages...");
 		std::vector<int> vPagePath(dims);
 		fillAdjacentPages(rTree, pagesCounts, 0, vPagePath);
-		TP();
+        TP("Adjacent pages filled");
 
-		LOG("Sorting points in pages...");
-		TS();
+        TS("Sorting points in pages...");
 		std::vector<int> vPagePath2(dims);
 		sortPages(rTree, pagesCounts, 0, vPagePath2);
-		TP();
+        TP("Points in pages sorted");
 
-		TP();
+        TP("RTree created");
 	}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
