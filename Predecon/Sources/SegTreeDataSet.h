@@ -8,11 +8,11 @@
 #include "referenceSelectors.h"
 #include "utils.h"
 
-struct RTreeDataSet : DataSet {
+struct SegTreeDataSet : DataSet {
 private:
 	Point min;
 	Point max;
-	void** rTree = NULL;
+	void** SegTree = NULL;
 	int dims;
 	double eps;
 	int* pagesCounts;
@@ -25,46 +25,46 @@ private:
 		std::vector<Point*> points;
 	};
 
-	void emplacePoint(void**& subRTree, int* pagePath, int* pagesCounts, int dimId, Point& p) {
+	void emplacePoint(void**& subSegTree, int* pagePath, int* pagesCounts, int dimId, Point& p) {
 		if(dimId == dims - 1) {
-			if(subRTree == NULL) subRTree = (void**)new Page[pagesCounts[dimId]]();
-			((Page*)subRTree)[pagePath[dimId]].points.emplace_back(&p);
+			if(subSegTree == NULL) subSegTree = (void**)new Page[pagesCounts[dimId]]();
+			((Page*)subSegTree)[pagePath[dimId]].points.emplace_back(&p);
 		}
 		else {
-			if(subRTree == NULL) subRTree = new void*[pagesCounts[dimId]]();
-			emplacePoint((void**&)subRTree[pagePath[dimId]], pagePath, pagesCounts, dimId + 1, p);
+			if(subSegTree == NULL) subSegTree = new void*[pagesCounts[dimId]]();
+			emplacePoint((void**&)subSegTree[pagePath[dimId]], pagePath, pagesCounts, dimId + 1, p);
 		}
 	}
 
-	void fillAdjacentPages(void** subRTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
+	void fillAdjacentPages(void** subSegTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
 		if(dimId == dims - 1) {
 			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
 				pagePath[dimId] = dimPage;
-				Page& page = ((Page*)subRTree)[dimPage];
+				Page& page = ((Page*)subSegTree)[dimPage];
 				if(!page.points.empty())
-					addAdjacent(rTree, page, pagePath, 0);
+					addAdjacent(SegTree, page, pagePath, 0);
 			}
 		}
 		else {
 			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
-				if(subRTree[dimPage] != NULL) {
+				if(subSegTree[dimPage] != NULL) {
 					pagePath[dimId] = dimPage;
-					fillAdjacentPages((void**)subRTree[dimPage], pagesCounts, dimId + 1, pagePath);
+					fillAdjacentPages((void**)subSegTree[dimPage], pagesCounts, dimId + 1, pagePath);
 				}
 			}
 		}
 	}
 
-	void addAdjacent(void** subRTree, Page& page, std::vector<int>& pagePath, int dimId) {
+	void addAdjacent(void** subSegTree, Page& page, std::vector<int>& pagePath, int dimId) {
 		if(dimId == dims - 1) {
-			if(pagePath[dimId] - 1 >= 0) { Page& adjPage = ((Page*)subRTree)[pagePath[dimId] - 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
-			{ Page& adjPage = ((Page*)subRTree)[pagePath[dimId]]; if(!adjPage.points.empty() && &adjPage != &page) page.adjacent.emplace_back(&adjPage); }
-			if(pagePath[dimId] + 1 < pagesCounts[dimId]) { Page& adjPage = ((Page*)subRTree)[pagePath[dimId] + 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
+			if(pagePath[dimId] - 1 >= 0) { Page& adjPage = ((Page*)subSegTree)[pagePath[dimId] - 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
+			{ Page& adjPage = ((Page*)subSegTree)[pagePath[dimId]]; if(!adjPage.points.empty() && &adjPage != &page) page.adjacent.emplace_back(&adjPage); }
+			if(pagePath[dimId] + 1 < pagesCounts[dimId]) { Page& adjPage = ((Page*)subSegTree)[pagePath[dimId] + 1]; if(!adjPage.points.empty()) page.adjacent.emplace_back(&adjPage); }
 		}
 		else {
-			if(pagePath[dimId] - 1 >= 0 && subRTree[pagePath[dimId] - 1] != NULL) addAdjacent((void**)subRTree[pagePath[dimId] - 1], page, pagePath, dimId + 1);
-			if(subRTree[pagePath[dimId]] != NULL) addAdjacent((void**)subRTree[pagePath[dimId]], page, pagePath, dimId + 1);
-			if(pagePath[dimId] + 1 < pagesCounts[dimId] && subRTree[pagePath[dimId] + 1] != NULL) addAdjacent((void**)subRTree[pagePath[dimId] + 1], page, pagePath, dimId + 1);
+			if(pagePath[dimId] - 1 >= 0 && subSegTree[pagePath[dimId] - 1] != NULL) addAdjacent((void**)subSegTree[pagePath[dimId] - 1], page, pagePath, dimId + 1);
+			if(subSegTree[pagePath[dimId]] != NULL) addAdjacent((void**)subSegTree[pagePath[dimId]], page, pagePath, dimId + 1);
+			if(pagePath[dimId] + 1 < pagesCounts[dimId] && subSegTree[pagePath[dimId] + 1] != NULL) addAdjacent((void**)subSegTree[pagePath[dimId] + 1], page, pagePath, dimId + 1);
 		}
 	}
 
@@ -77,28 +77,28 @@ private:
         TP("Deviations calculated");
 	}
 
-	void sortPages(void** subRTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
+	void sortPages(void** subSegTree, int* pagesCounts, int dimId, std::vector<int>& pagePath) {
 		if(dimId == dims - 1) {
 			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
 				pagePath[dimId] = dimPage;
-				Page& page = ((Page*)subRTree)[dimPage];
+				Page& page = ((Page*)subSegTree)[dimPage];
 				if(!page.points.empty())
 					std::sort(page.points.begin(), page.points.end(), [&](Point* p1, Point* p2) -> bool { return (*p1)[sortedAttr[0]] < (*p2)[sortedAttr[0]]; });
 			}
 		}
 		else {
 			for(int dimPage = 0; dimPage < pagesCounts[dimId]; ++dimPage) {
-				if(subRTree[dimPage] != NULL) {
+				if(subSegTree[dimPage] != NULL) {
 					pagePath[dimId] = dimPage;
-					sortPages((void**)subRTree[dimPage], pagesCounts, dimId + 1, pagePath);
+					sortPages((void**)subSegTree[dimPage], pagesCounts, dimId + 1, pagePath);
 				}
 			}
 		}
 	}
 
 public:
-    RTreeDataSet(std::vector<Point>* data, Params params) : DataSet(data, params), dims(params.n > dimensions() ? dimensions() : params.n), eps(params.eps) {
-        TS("Creating RTree...");
+    SegTreeDataSet(std::vector<Point>* data, Params params) : DataSet(data, params), dims(params.n > dimensions() ? dimensions() : params.n), eps(params.eps) {
+        TS("Creating SegTree...");
 		// init;
 		calcDeviations();
         for(int i=0; i < dims; ++i) rDims.emplace_back(sortedAttr[i]);
@@ -114,26 +114,26 @@ public:
 			for(int dimId = 0; dimId < dims; ++dimId)
 				pagePath[dimId] = (p[rDims[dimId]] - min[rDims[dimId]]) / eps;
 
-			emplacePoint(rTree, pagePath, pagesCounts, 0, p);
+			emplacePoint(SegTree, pagePath, pagesCounts, 0, p);
 		}
 
         TS("Filling adjacent pages...");
 		std::vector<int> vPagePath(dims);
-		fillAdjacentPages(rTree, pagesCounts, 0, vPagePath);
+		fillAdjacentPages(SegTree, pagesCounts, 0, vPagePath);
         TP("Adjacent pages filled");
 
         TS("Sorting points in pages...");
 		std::vector<int> vPagePath2(dims);
-		sortPages(rTree, pagesCounts, 0, vPagePath2);
+		sortPages(SegTree, pagesCounts, 0, vPagePath2);
         TP("Points in pages sorted");
 
-        TP("RTree created");
+        TP("SegTree created");
 	}
 
 	std::vector<Point*> regionQuery(const Point& target, const double& eps, const std::vector<int>& attrs = {}) const {
 		std::vector<Point*> neighbours;
 
-		void** pagePtr = rTree;
+		void** pagePtr = SegTree;
 		for(int dimId = 0; dimId < dims - 1; ++dimId) { // go down the tree to the bottom level
 			int dimPage = (target[rDims[dimId]] - min[rDims[dimId]]) / eps;
 			pagePtr = (void**)pagePtr[dimPage];

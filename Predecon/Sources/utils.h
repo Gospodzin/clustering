@@ -3,7 +3,6 @@
 #include <numeric>
 #include <chrono>
 #include <algorithm>
-#include <Eigen/Dense>
 #include "Cluster.h"
 #include "Subspace.h"
 #include "Data.h"
@@ -80,19 +79,6 @@ namespace utils {
 		std::random_shuffle(ids.begin(), ids.end());
 		std::for_each(ids.begin(), ids.begin() + n, [&](int id) -> void { sample.emplace_back(data[id]); });
 		return sample;
-	}
-
-	static void maxVarDir(Data& data) {
-		Eigen::MatrixXd mat;
-		mat.resize(data.size(), data.dimensions());
-		for(int r = 0; r < mat.rows(); ++r)
-			for(int c = 0; c < mat.cols(); ++c)
-				mat(r, c) = data[r][c];
-
-		Eigen::MatrixXd centered = mat.rowwise() - mat.colwise().mean();
-		Eigen::MatrixXd cov = (centered.adjoint() * centered) / double(mat.rows() - 1);
-
-		Eigen::EigenSolver<Eigen::MatrixXd> es(cov);
 	}
 
     static std::vector<Point> pca(std::vector<Point> data) {
