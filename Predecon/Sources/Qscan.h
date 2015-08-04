@@ -1,6 +1,7 @@
 #pragma once
 #include "Dbscan.h"
 #include "PLDataSet.h"
+#include <unordered_map>
 
 class Qscan {
 public:
@@ -49,10 +50,14 @@ private:
         std::nth_element(dataCpy.begin(), dataCpy.begin() + (dataCpy.size() - 1) / 2, dataCpy.end(), [&](const Point* p1, const Point* p2) -> bool {return p1->at(divDim) < p2->at(divDim); });
         double median = dataCpy[dataCpy.size() / 2]->at(divDim);
 
+		LOG("DivDim: " + std::to_string(divDim));
+		LOG("Median: " + std::to_string(median));
+
+
         std::vector<Point>* L = new std::vector<Point>();
         std::vector<Point>* R = new std::vector<Point>();
         L->reserve(data->size() / 2 + 1);
-        R->reserve(data->size() - data->size() / 2 - 1);
+        R->reserve(data->size() - (data->size() / 2 + 1));
 
         for(int i = 0; i <= dataCpy.size() / 2; ++i) L->emplace_back(data->at(dataCpy[i]->id));
         for(int i = dataCpy.size() / 2 + 1; i < dataCpy.size(); ++i) R->emplace_back(data->at(dataCpy[i]->id));
@@ -106,27 +111,29 @@ private:
 
         // increase mf clusters ids by offset so that they don't collide
         int mfCidOffset = lMaxCid + rMaxCid;
-        int mfMaxCid=0;
+        int mfMaxCid = 0;
         for(Point& mfp : *MF) {
             if(mfp.cid > mfMaxCid) mfMaxCid = mfp.cid;
             mfp.cid = mfp.cid == NOISE ? mfp.cid : mfp.cid + mfCidOffset;
         }
 
-        for(Point& mfp : *MF){
-           if(mfp.cid != NOISE) {
-                Point& dp = data->at(mfp.id);
-                if(dp.cid == NOISE) {
-                    dp.cid = mfp.cid;
-                }
-                else if(dp.cid != mfp.cid) {
-                    int dpCid = dp.cid;
-                    for(Point& pp : *data) {
-                        if(pp.cid == dpCid) pp.cid = mfp.cid;
-                    }
-                }
-            }
-        }
 
+		std::unordered_map<int, Point*> mfpById;
+		mfpById.reserve(MF->size());
+		for(Point& mfp : *MF) mfpById.emplace(mfp.id, &mfp);
+
+        for(Point& mfp : *MF) {
+           if(mfp.cid != NOISE) {
+			   Point& dp = data->at(mfp.id);
+			   if(dp.cid == NOISE)
+				   dp.cid = mfp.cid;
+			   else if(dp.cid != mfp.cid) {
+
+			   }
+           }
+        }
+		
+		LOG("RMAXCID: " + std::to_string(rMaxCid) + " LMAXCID: " + std::to_string(lMaxCid) + " MFMAXCID: " + std::to_string(mfMaxCid));
 
         std::vector<bool> cidExists(rMaxCid + lMaxCid + mfMaxCid + 1, false);
         for(Point &p : *data) if(!cidExists[p.cid]) cidExists[p.cid] = true;

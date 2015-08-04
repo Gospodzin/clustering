@@ -1,5 +1,6 @@
 #include "SubcluUI.h"
 #include "Dbscan.h"
+#include "MTIDataSet.h"
 #include "PLDataSet.h"
 #include "Qscan.h"
 #include <numeric>
@@ -10,11 +11,11 @@
 
 int main(int ac, char* av[])
 {
-	int n;
-	std::cin >> n;
-	Data data(10, Point(std::vector<double>(n, 1), 1));
-	
-	utils::pca(data, n);
+
+	Data* data = DataLoader("hehe.txt").load();
+
+	Qscan qscan(data, 4000, 4);
+	qscan.compute();
 	system("pause");
 	return 0;
 }

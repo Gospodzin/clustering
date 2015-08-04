@@ -142,9 +142,12 @@ public:
 		int dimPage = (target[rDims[dims - 1]] - min[rDims[dims - 1]]) / eps;
 		Page& page = ((Page*)pagePtr)[dimPage];
 		
-		for(Point* p : page.points)
-			if(distance(target, *p, {}) <= eps)
+		for(Point* p : page.points) {
+			bool candidate = true;
+			for(int j = 1; j < dims; ++j) if(abs(target[rDims[j]] - p->at(rDims[j])) > eps) { candidate = false; break; }
+			if(candidate && distance(target, *p, {}) <= eps) 
 				neighbours.emplace_back(p);
+		}
 
 		for(Page* adjPage : page.adjacent) {
 			int dimPage = (target[rDims[0]] - min[rDims[0]]) / eps;
@@ -153,19 +156,26 @@ public:
 			if(pDimPage > dimPage) 
 				for(auto it = adjPage->points.begin(); it != adjPage->points.end(); ++it) {
 					if(std::abs(target[rDims[0]] - (**it)[rDims[0]]) > eps) break;
-					if(distance(target, **it, {}) <= eps)
+					bool candidate = true;
+					for(int j = 1; j < dims; ++j) if(abs(target[rDims[j]] - (**it)[rDims[j]]) > eps) { candidate = false; break; }
+					if(candidate && distance(target, **it, {}) <= eps)
 						neighbours.emplace_back(*it);
 				}
 			else if(pDimPage < dimPage)
 				for(auto it = adjPage->points.rbegin(); it != adjPage->points.rend(); ++it) {
 					if(std::abs(target[rDims[0]] - (**it)[rDims[0]]) > eps) break;
-					if(distance(target, **it, {}) <= eps)
+					bool candidate = true;
+					for(int j = 1; j < dims; ++j) if(abs(target[rDims[j]] - (**it)[rDims[j]]) > eps) { candidate = false; break; }
+					if(candidate && distance(target, **it, {}) <= eps)
 						neighbours.emplace_back(*it);
 				}
 			else 
-				for(Point* p : adjPage->points)
-					if(distance(target, *p, {}) <= eps)
+				for(Point* p : adjPage->points) {
+					bool candidate = true;
+					for(int j = 1; j < dims; ++j) if(abs(target[rDims[j]] - p->at(rDims[j])) > eps) { candidate = false; break; }
+					if(candidate && distance(target, *p, {}) <= eps)
 						neighbours.emplace_back(p);
+				}
 			
 		}
 
