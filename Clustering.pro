@@ -53,7 +53,8 @@ HEADERS +=     mainwindow.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/SubcluUI.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/TIDataSet.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/PLDataSet.h \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/RTreeDataSet.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/SegTreeDataSet.h \
+    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/VaFileDataSet.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/UI.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Data.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/libpca/pca.h \
@@ -61,7 +62,8 @@ HEADERS +=     mainwindow.h \
     computationthread.h \
     loaddatathread.h \
     qcustomplot/qcustomplot.h \
-    datastatsthread.h
+    datastatsthread.h \
+    pcathread.h
 
 INCLUDEPATH += C:/Utils/boost_1_55_0 \
             C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources \

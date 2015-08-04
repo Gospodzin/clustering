@@ -11,7 +11,9 @@
 #include "DataWriter.h"
 #include "Qscan.h"
 #include "PLDataSet.h"
-#include "RTreeDataSet.h"
+#include "SegTreeDataSet.h"
+#include "VaFileDataSet.h"
+#include "MTIDataSet.h"
 
 class ComputationThread : public QThread
 {
@@ -70,8 +72,10 @@ private:
         switch(sets.dataStructure) {
         case BASIC: runAlgorithm<T, BasicDataSet>(data.get(), sets, {measureId}); break;
         case TI:    runAlgorithm<T, TIDataSet>(data.get(), sets, {measureId, referenceSelectors::max}); break;
+        case MTI:    runAlgorithm<T, MTIDataSet>(data.get(), sets, {measureId, sets.n}); break;
         case PL:    runAlgorithm<T, PLDataSet>(data.get(), sets, {measureId, sets.n}); break;
-        case RTree: runAlgorithm<T, RTreeDataSet>(data.get(), sets, {measureId, sets.eps, sets.n}); break;
+        case SegTree: runAlgorithm<T, SegTreeDataSet>(data.get(), sets, {measureId, sets.eps, sets.n}); break;
+        case VaFile: runAlgorithm<T, VaFileDataSet>(data.get(), sets, {measureId, sets.eps, sets.n}); break;
         }
     }
 

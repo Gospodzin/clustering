@@ -12,8 +12,10 @@ enum AlgorithmId {
 enum DataStructure {
     BASIC,
     TI,
+    MTI,
     PL,
-    RTree
+    SegTree,
+    VaFile
 };
 
 enum Measure {

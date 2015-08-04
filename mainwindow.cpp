@@ -17,10 +17,11 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),ui(new Ui::MainWindow) {
     ui->setupUi(this);
 
-    ui->logBrowser->document()->setMaximumBlockCount(100);
+    ui->logBrowser->document()->setMaximumBlockCount(300);
     logging::LOG::out = &logger;
 
     connect(ui->dataInfoTable->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(on_dataInfoTable_sectionDoubleClicked(int)));
+    connect(&pcaThread, SIGNAL(done()), this, SLOT(pcaComputed()));
     connect(&statsThread, SIGNAL(done()), this, SLOT(statsComputed()));
     connect(&compThread, SIGNAL(computed()), this, SLOT(update()));
     connect(&loadThread, SIGNAL(loaded()), this, SLOT(dataLoaded()));
@@ -37,6 +38,10 @@ MainWindow::~MainWindow() {
 void MainWindow::dataLoaded() {
     ui->loadButton->setEnabled(true);
     ui->computeButton->setEnabled(true);
+    ui->pcaButton->setEnabled(true);
+    ui->maxPcaButton->setEnabled(true);
+    ui->pcaDimsBox->setEnabled(true);
+    ui->undoPcaButton->setEnabled(true);
 
     statsThread.start(loadThread.data);
 }
@@ -54,6 +59,10 @@ void MainWindow::statsComputed() {
     fillStatsTable(dims);
 }
 
+
+void MainWindow::pcaComputed() {
+    statsThread.start(pcaThread.data);
+}
 
 void MainWindow::log(QString msg) {
     ui->logBrowser->append(msg);
@@ -119,7 +128,7 @@ void MainWindow::updateDimensionSelects() {
     }
 
     x->setCurrentText("0");
-    y->setCurrentText("1");
+    y->setCurrentText(attrs.size() == 1 ? "-" : "1");
 }
 
 void MainWindow::on_computeButton_clicked() {
@@ -155,8 +164,8 @@ void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
     for(int i = 0; i < compThread.data->size(); ++i) {
         Point* p = &compThread.data->at(i);
 
-        double xx = p->at(xAttr);
-        double yy = p->at(yAttr);
+        double xx = xAttr == -1 ? 0 : p->at(xAttr);
+        double yy = yAttr == -1 ? 0 : p->at(yAttr);
 
         double xDist = std::abs(xx-x);
         double yDist = std::abs(yy-y);
@@ -182,7 +191,7 @@ void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
 
     if(minP != NULL) {
         std::stringstream ss;
-        ss<<"Select -> X:" <<minP->at(xAttr) << " Y:" << minP->at(yAttr) << " CID:" << minP->cid;
+        ss<<"Select -> X:" << (xAttr == -1 ? 0 : minP->at(xAttr)) << " Y:" << (yAttr == -1 ? 0 : minP->at(yAttr)) << " CID:" << minP->cid << " PID:" << minP->id;
         LOG(ss.str());
 
         selectedPoint = minP;
@@ -288,10 +297,10 @@ DrawSettings MainWindow::collectDrawSettings()  {
 
     bool ok;
     int tmpI = x.toInt(&ok);
-    if(ok) sets.x = tmpI; else x = -1;
+    if(ok) sets.x = tmpI; else sets.x = -1;
 
     tmpI = y.toInt(&ok);
-    if(ok) sets.y = tmpI; else y = -1;
+    if(ok) sets.y = tmpI; else sets.y = -1;
 
     double tmpD = pointSize.toDouble(&ok);
     if(ok) sets.pointSize = tmpD;
@@ -326,9 +335,11 @@ Settings MainWindow::collectSettings() {
     else {QMessageBox::warning(NULL, "Warning!", "No such algorithm!"); throw -1;}
 
     if(dataStructure == "TI") sets.dataStructure = DataStructure::TI;
+    else if(dataStructure == "MTI") sets.dataStructure = DataStructure::MTI;
     else if(dataStructure == "BASIC") sets.dataStructure = DataStructure::BASIC;
     else if(dataStructure == "PL") sets.dataStructure = DataStructure::PL;
-    else if(dataStructure == "RTree") sets.dataStructure = DataStructure::RTree;
+    else if(dataStructure == "SegTree") sets.dataStructure = DataStructure::SegTree;
+    else if(dataStructure == "VaFile") sets.dataStructure = DataStructure::VaFile;
     else {QMessageBox::warning(NULL, "Warning!", "No such data structure!"); throw -1;}
 
     if(measure == "EUCLIDEAN") sets.measure = Measure::EUCLIDEAN;
@@ -447,7 +458,7 @@ void MainWindow::fillStatsTable(std::vector<int> dims) {
 }
 
 void MainWindow::on_dataStructureSelect_currentTextChanged(const QString &val) {
-    if(val.toStdString() == "RTree" || val.toStdString() == "PL") ui->nBox->setEnabled(true);
+    if(val.toStdString() == "SegTree" || val.toStdString() == "PL" || val.toStdString() == "VaFile") ui->nBox->setEnabled(true);
     else ui->nBox->setEnabled(false);
 }
 
@@ -461,16 +472,20 @@ void MainWindow::on_outputFileCheckBox_toggled(bool checked) {
     ui->outputFileBox->setEnabled(checked);
 }
 
-void MainWindow::keyPressEvent(QKeyEvent* e){
+void MainWindow::keyPressEvent(QKeyEvent* e) {
     if(e->key() == Qt::Key_Return && ui->computeButton->isEnabled()) on_computeButton_clicked();
 }
 
 void MainWindow::on_pcaButton_clicked() {
     bool ok;
     int dims = ui->pcaDimsBox->text().toInt(&ok);
-    if(ok) statsThread.start(std::shared_ptr<Data>(utils::pca(*loadThread.data, dims)));
+    if(ok) pcaThread.start(loadThread.data, dims);
 }
 
 void MainWindow::on_undoPcaButton_clicked() {
     statsThread.start(loadThread.data);
+}
+
+void MainWindow::on_maxPcaButton_clicked() {
+    ui->pcaDimsBox->setText(QString::number(loadThread.data->dimensions()));
 }

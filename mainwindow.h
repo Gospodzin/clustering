@@ -8,6 +8,7 @@
 #include "clustering.h"
 #include "computationthread.h"
 #include "datastatsthread.h"
+#include "pcathread.h"
 #include "loaddatathread.h"
 #include "guilogger.h"
 #include "qcustomplot.h"
@@ -34,6 +35,7 @@ private slots:
     void update();
     void dataLoaded();
     void statsComputed();
+    void pcaComputed();
     void log(QString msg);
     void plotClick(QMouseEvent* mouseEvent);
 
@@ -55,10 +57,14 @@ private slots:
 
     void on_undoPcaButton_clicked();
 
+
+    void on_maxPcaButton_clicked();
+
 private:
     ComputationThread compThread;
     LoadDataThread loadThread;
     DataStatsThread statsThread;
+    PcaThread pcaThread;
 
     GuiLogger logger;
     std::map<std::string, Subspace> stringToSubspace;

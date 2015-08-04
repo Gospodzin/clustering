@@ -226,19 +226,19 @@
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>200</y>
+      <y>160</y>
       <width>201</width>
-      <height>221</height>
+      <height>261</height>
      </rect>
     </property>
     <property name="title">
-     <string>Clustering Settings</string>
+     <string>Clustering</string>
     </property>
     <widget class="QLabel" name="deltaLabel">
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>170</y>
+       <y>200</y>
        <width>31</width>
        <height>16</height>
       </rect>
@@ -251,7 +251,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>190</y>
+       <y>220</y>
        <width>31</width>
        <height>20</height>
       </rect>
@@ -260,14 +260,14 @@
       <string/>
      </property>
      <property name="text">
-      <string>20</string>
+      <string>4</string>
      </property>
     </widget>
     <widget class="QLabel" name="lambdaLabel">
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>170</y>
+       <y>200</y>
        <width>41</width>
        <height>16</height>
       </rect>
@@ -280,7 +280,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>40</y>
+       <y>70</y>
        <width>81</width>
        <height>22</height>
       </rect>
@@ -292,12 +292,12 @@
      </item>
      <item>
       <property name="text">
-       <string>SUBCLU</string>
+       <string>QSCAN</string>
       </property>
      </item>
      <item>
       <property name="text">
-       <string>QSCAN</string>
+       <string>SUBCLU</string>
       </property>
      </item>
      <item>
@@ -310,7 +310,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>20</y>
+       <y>50</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -323,7 +323,7 @@
      <property name="geometry">
       <rect>
        <x>130</x>
-       <y>190</y>
+       <y>220</y>
        <width>31</width>
        <height>20</height>
       </rect>
@@ -336,16 +336,11 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>90</y>
+       <y>120</y>
        <width>81</width>
        <height>22</height>
       </rect>
      </property>
-     <item>
-      <property name="text">
-       <string>PL</string>
-      </property>
-     </item>
      <item>
       <property name="text">
        <string>TI</string>
@@ -353,7 +348,17 @@
      </item>
      <item>
       <property name="text">
-       <string>RTree</string>
+       <string>PL</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>VaFile</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SegTree</string>
       </property>
      </item>
      <item>
@@ -361,25 +366,30 @@
        <string>BASIC</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>MTI</string>
+      </property>
+     </item>
     </widget>
     <widget class="QLineEdit" name="miBox">
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>190</y>
+       <y>220</y>
        <width>31</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
-      <string>5</string>
+      <string>4</string>
      </property>
     </widget>
     <widget class="QLineEdit" name="deltaBox">
      <property name="geometry">
       <rect>
        <x>90</x>
-       <y>190</y>
+       <y>220</y>
        <width>31</width>
        <height>20</height>
       </rect>
@@ -392,7 +402,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>140</y>
+       <y>170</y>
        <width>91</width>
        <height>22</height>
       </rect>
@@ -412,7 +422,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>120</y>
+       <y>150</y>
        <width>47</width>
        <height>13</height>
       </rect>
@@ -423,12 +433,12 @@
     </widget>
     <widget class="QCheckBox" name="odcCheckBox">
      <property name="enabled">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
        <x>140</x>
-       <y>90</y>
+       <y>120</y>
        <width>51</width>
        <height>17</height>
       </rect>
@@ -441,7 +451,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>170</y>
+       <y>200</y>
        <width>21</width>
        <height>16</height>
       </rect>
@@ -454,7 +464,7 @@
      <property name="geometry">
       <rect>
        <x>10</x>
-       <y>70</y>
+       <y>100</y>
        <width>81</width>
        <height>16</height>
       </rect>
@@ -467,7 +477,7 @@
      <property name="geometry">
       <rect>
        <x>50</x>
-       <y>170</y>
+       <y>200</y>
        <width>16</width>
        <height>16</height>
       </rect>
@@ -478,31 +488,79 @@
     </widget>
     <widget class="QLineEdit" name="nBox">
      <property name="enabled">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>90</y>
+       <y>120</y>
        <width>31</width>
        <height>20</height>
       </rect>
      </property>
      <property name="text">
-      <string>1</string>
+      <string>2</string>
      </property>
     </widget>
     <widget class="QLabel" name="label_13">
      <property name="geometry">
       <rect>
        <x>100</x>
-       <y>70</y>
+       <y>100</y>
        <width>16</width>
        <height>16</height>
       </rect>
      </property>
      <property name="text">
       <string>N</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="computeButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>18</y>
+       <width>101</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Compute</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="terminateButton">
+     <property name="geometry">
+      <rect>
+       <x>109</x>
+       <y>18</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>X</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="drawCheckBox">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>150</x>
+       <y>20</y>
+       <width>51</width>
+       <height>17</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Draw</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
      </property>
     </widget>
    </widget>
@@ -926,10 +984,13 @@
       </rect>
      </property>
      <property name="text">
-      <string>C:/Users/Gospo/Documents/Qt/dense_d56_r96367_cup98.txt</string>
+      <string>C:/Users/Gospo/Documents/Qt/build-Clustering-QT53-Release/test.txt</string>
      </property>
     </widget>
     <widget class="QPushButton" name="pcaButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>10</x>
@@ -943,6 +1004,9 @@
      </property>
     </widget>
     <widget class="QLineEdit" name="pcaDimsBox">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>54</x>
@@ -956,9 +1020,12 @@
      </property>
     </widget>
     <widget class="QPushButton" name="undoPcaButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="geometry">
       <rect>
-       <x>98</x>
+       <x>127</x>
        <y>120</y>
        <width>31</width>
        <height>23</height>
@@ -968,54 +1035,22 @@
       <string>X</string>
      </property>
     </widget>
-   </widget>
-   <widget class="QPushButton" name="terminateButton">
-    <property name="geometry">
-     <rect>
-      <x>129</x>
-      <y>170</y>
-      <width>31</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>X</string>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="computeButton">
-    <property name="enabled">
-     <bool>false</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>20</x>
-      <y>170</y>
-      <width>111</width>
-      <height>23</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Compute</string>
-    </property>
-   </widget>
-   <widget class="QCheckBox" name="drawCheckBox">
-    <property name="enabled">
-     <bool>true</bool>
-    </property>
-    <property name="geometry">
-     <rect>
-      <x>170</x>
-      <y>172</y>
-      <width>51</width>
-      <height>17</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Draw</string>
-    </property>
-    <property name="checked">
-     <bool>true</bool>
-    </property>
+    <widget class="QPushButton" name="maxPcaButton">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>98</x>
+       <y>120</y>
+       <width>31</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>max</string>
+     </property>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -1050,9 +1085,6 @@
   <tabstop>pcaButton</tabstop>
   <tabstop>pcaDimsBox</tabstop>
   <tabstop>undoPcaButton</tabstop>
-  <tabstop>computeButton</tabstop>
-  <tabstop>terminateButton</tabstop>
-  <tabstop>drawCheckBox</tabstop>
   <tabstop>sizeBox</tabstop>
   <tabstop>dimensionsBox</tabstop>
   <tabstop>maxMDDimBox</tabstop>
