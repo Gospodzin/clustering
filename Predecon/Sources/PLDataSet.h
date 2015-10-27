@@ -10,7 +10,6 @@ struct PLDataSet : DataSet {
 private:
 	std::vector<Point> sortedData;
 	std::vector<int> idToSortedId;
-    std::vector<double> deviations;
     std::vector<int> sortedAttr;
     int sortDim;
 	int n;
@@ -21,6 +20,7 @@ private:
 			std::transform(p.begin(), p.end(), means.begin(), means.begin(), std::plus<double>());
 		std::transform(means.begin(), means.end(), means.begin(), [&](double m) -> double { return m / data->size(); });
 
+		std::vector<double> deviations;
 		deviations.resize(data->front().size());
 		for(Point& p : *data)
 			for(int i = 0; i < p.size(); ++i)
@@ -35,14 +35,22 @@ public:
     PLDataSet(std::vector<Point>* data, Params params) : DataSet(data, params), idToSortedId(data->size()), n(params.n > dimensions() ? dimensions() : params.n) {
         TS("Creating PLDataSet...");
         // init;
-        calcDeviations();
+		if (!params.dims.empty()) {
+			sortedAttr = params.dims;
+			n = params.dims.size();
+		}
+		else {
+			calcDeviations();
+		}
         this->sortDim = sortedAttr[0];
 		LOG("Selected sort dim: " + std::to_string(this->sortDim));
 		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
 		sortedData.reserve(data->size());
 		for(Point& p : *data) sortedData.emplace_back(p);
 		// sort data
+		TS("Sorting...");
 		std::sort(sortedData.begin(), sortedData.end(), [&](const Point& p1, const Point& p2) -> bool {return p1[sortDim] < p2[sortDim]; });
+		TP("Sorted");
 		// create id to sortedId mapping
 		for(int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].id] = i;
         TP("PLDataSet created");

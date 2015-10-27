@@ -2,6 +2,7 @@
 #include <boost/tokenizer.hpp>
 #include <strstream>
 #include "logging.h"
+#include "utils.h"
 
 DataLoader::DataLoader(std::string filePath) : file(filePath), dimsCount(readDimsCount()), idCarrier(0) {
 }
@@ -58,10 +59,6 @@ void DataLoader::readHeaders(std::string headers, Data& data) {
 	for(const auto& header : tokens) data.headers.emplace_back(header);
 }
 
-void DataLoader::defaultHeaders(Data& data) {
-    for(int dim=0; dim < data.dimensions(); ++dim) data.headers.emplace_back(std::to_string(dim));
-}
-
 int DataLoader::countPoints(std::string& dataString, bool headers) {
     int pointsCount = std::count(dataString.begin(), dataString.end(), '\n');
     if(dataString.back() != '\n') ++pointsCount;
@@ -79,7 +76,7 @@ Data* DataLoader::load(bool headers) {
     std::string line;
 	if(headers && std::getline(dataStream, line)) readHeaders(line, *data);
     while (std::getline(dataStream, line)) strToPoint(line, data->at(idCarrier));
-    if(!headers) defaultHeaders(*data);
+    if(!headers) utils::defaultHeaders(*data);
     TP("Data loaded");
 
     return data;

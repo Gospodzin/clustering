@@ -3,9 +3,11 @@
 
 Point::Point() {}
 
-Point::Point(int dimsCount, PointId id) : id(id), cid(NONE) { reserve(dimsCount); }
+Point::Point(size_t size) : std::vector<double>(size) {}
 
-Point::Point(std::vector<double> data, PointId id) : id(id), cid(NONE), vector<double>(data) {}
+Point::Point(int dimsCount, PointId id) : id(id), cid(NONE), type(UNKNOWN) { reserve(dimsCount); }
+
+Point::Point(std::vector<double> data, PointId id) : id(id), cid(NONE), type(UNKNOWN), vector<double>(data) {}
 
 std::string Point::toString() {
 	std::stringstream ss;

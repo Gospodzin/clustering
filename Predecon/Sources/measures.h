@@ -8,7 +8,8 @@ namespace measures{
 
 	enum MeasureId {
 		Euclidean,
-		Manhattan
+		Manhattan,
+		CosDist
 	};
 
 	double euclideanDistance(const Point& p1, const Point& p2);

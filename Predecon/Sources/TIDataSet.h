@@ -1,6 +1,7 @@
 #pragma once
 #include <numeric>
 #include <algorithm>
+#include "utils.h"
 
 #include "DataSet.h"
 #include "referenceSelectors.h"
@@ -24,12 +25,18 @@ public:
 	TIDataSet(std::vector<Point>* data, Params params) : attrs(params.attrs), DataSet(data, params) {
         TS("Creating TIDataSet...");
 		// init
-		reference = params.referenceSelector == NULL ? params.reference : params.referenceSelector(*data);
+		reference = params.referenceSelector ? params.referenceSelector(*data) : params.reference;
+		LOG("Ref point: [" + reference.toString() + "]");
+		LOG("m: " + std::to_string(utils::calcM(reference, *data, measures::getMeasure(measureId))));
+		LOG("mad: " + std::to_string(utils::calcMAD(reference, *data, measures::getMeasure(measureId))));
+		LOG("sd: " + std::to_string(utils::calcSD(reference, *data, measures::getMeasure(measureId))));
 		measures::AttrsMeasure measure = measures::getAttrsMeasure(measureId);
 		sortedData.reserve(data->size());
 		for (Point& p : *data) sortedData.emplace_back(p, attrs.size() == 0 ? this->measure(p, reference) : measure(p, reference, attrs));
 		// sort data
+		TS("Sorting...");
 		std::sort(sortedData.begin(), sortedData.end(), [&](const PointWithDistance& p1, const PointWithDistance& p2) -> bool {return p1.distance < p2.distance; });
+		TP("Sorted");
 		// create id to sortedId mapping
 		idToSortedId.resize(data->size());
 		for (int i = 0; i < (int)sortedData.size(); i++) idToSortedId[sortedData[i].point.id] = i;

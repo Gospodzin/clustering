@@ -10,20 +10,20 @@ class ODC {
 public:
 	ODC(std::vector<Point>* data, double eps, int mi, int attr) : data(data), eps(eps), mi(mi), attr(attr) {
 		sortedData.reserve(data->size());
-		for(Point& p : *data) sortedData.emplace_back(&p);
+		for (Point& p : *data) sortedData.emplace_back(&p);
 		std::sort(sortedData.begin(), sortedData.end(), [&](Point const* const& p1, Point const* const& p2) -> bool { return p1->at(attr) < p2->at(attr); });
 	}
 
 	void compute() {
-                TS("Performing Dbscan...");
+		TS("Performing Odc...");
 		odc();
-                TP("Dbscan performed");
+		TP("Odc performed");
 	}
 
 	std::map < Subspace, Clusters > getClusters() {
 		std::map < Subspace, Clusters > clustersBySubspace;
 
-		Subspace subspace = {attr};
+		Subspace subspace = { attr };
 
 		Clusters clusters = utils::dataToClusters(data);
 
@@ -33,7 +33,7 @@ public:
 	}
 
 	void clean() {
-		for(Point& p : *data) p.cid = NONE;
+		for (Point& p : *data) p.cid = NONE;
 	}
 
 private:
@@ -46,35 +46,31 @@ private:
 	void odc() {
 		int cid = NOISE + 1;
 		bool clusterFound = false;
-        for(int l = 0, r = 0, i = 0; i < sortedData.size(); ++i) {
+		for (int l = 0, r = 0, i = 0; i < sortedData.size(); ++i) {
 			// current point
 			Point* cur = sortedData[i];
-			
-			// correct bounds
-			r = r < i ? i : r;
-			l = l > i ? i : l;
 
 			// adjust left
-			while(dist(cur, sortedData[l]) > eps) 
+			while (dist(cur, sortedData[l]) > eps)
 				++l;
 
 			// adjust right
-			while(r+1 < sortedData.size() && dist(cur, sortedData[r+1]) <= eps) 
+			while (r + 1 < sortedData.size() && dist(cur, sortedData[r + 1]) <= eps)
 				++r;
 
 			// next cluster
-			if(cur->cid == NONE && clusterFound) 
+			if (cur->cid == NONE && clusterFound)
 				++cid, clusterFound = false;
 
 			// mark cluster
-			if(r - l + 1 >= mi)
-				for(int j = r; j >= l && sortedData[j]->cid != cid; --j)
+			if (r - l + 1 >= mi)
+				for (int j = r; j >= l && sortedData[j]->cid != cid; --j)
 					sortedData[j]->cid = cid, clusterFound = true;
 		}
 
 		// mark noise
-		for(Point* p : sortedData)
-			if(p->cid == NONE)
+		for (Point* p : sortedData)
+			if (p->cid == NONE)
 				p->cid = NOISE;
 	}
 

@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <sstream>
 #include <algorithm>
+#include <numeric>
 
 
 DataWriter::DataWriter(std::string filePath) : file(filePath) {
@@ -76,12 +77,17 @@ std::string DataWriter::write(const double& duration) {
 	return ss.str();
 }
 
-std::string DataWriter::writeStats(const std::map< Subspace, Clusters >& clustersBySubspace) {
+std::string DataWriter::writeStats(const std::map< Subspace, Clusters >& clustersBySubspace, const int dataSize) {
 	std::stringstream ss;
+	ss << "Clusters count: " << std::accumulate(clustersBySubspace.begin(), clustersBySubspace.end(), 0, [](int count, std::pair<Subspace, Clusters> clusters) {return count + clusters.second.size(); }) << std::endl;
+	ss << "Subspaces count: " << clustersBySubspace.size() << std::endl;
 	ss << "[Subspace]" << std::endl;
 	ss << "  " << "[Cluster]" << " : " << "[Size]" << std::endl;
 	for(auto clusters : clustersBySubspace) {
 		ss << write(clusters.first) << std::endl;
+		int clusteredCount = 0;
+		for (auto cluster : clusters.second) clusteredCount += cluster.second->points.size();
+		ss << "  " << "N : " << dataSize - clusteredCount << std::endl;
 		for (auto cluster : clusters.second)
 			ss << "  " << cluster.first << " : " << cluster.second->points.size() << std::endl;
 	}

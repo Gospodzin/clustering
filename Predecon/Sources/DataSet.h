@@ -11,15 +11,18 @@ struct DataSet
 		Params() {}
 		Params(measures::MeasureId measureId) : measureId(measureId) {}
 		Params(measures::MeasureId measureId, referenceSelectors::ReferenceSelector referenceSelector) : measureId(measureId), referenceSelector(referenceSelector) {}
+		Params(measures::MeasureId measureId, Point reference) : measureId(measureId), reference(reference) {}
 		Params(measures::MeasureId measureId, int n) : measureId(measureId), n(n) {}
 		Params(measures::MeasureId measureId, double eps, int n) : measureId(measureId), eps(eps), n(n) {}
+		Params(measures::MeasureId measureId, std::vector<int> dims) : measureId(measureId), dims(dims) {}
 
 		measures::MeasureId measureId;
 		double eps;
 		int n;
-		referenceSelectors::ReferenceSelector referenceSelector = NULL;
+		referenceSelectors::ReferenceSelector referenceSelector;
 		Point reference;
 		std::vector<int> attrs = {};
+		std::vector<int> dims = {};
 	};
 
 	std::vector<Point>* data;

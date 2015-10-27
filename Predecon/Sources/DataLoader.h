@@ -13,7 +13,6 @@ private:
     double parseDouble(const char* number);
     void strToPoint(std::string& line, Point& point);
 	void readHeaders(std::string headers, Data& data);
-    void defaultHeaders(Data& data);
     int countPoints(std::string& dataString, bool headers);
 	int readDimsCount();
 	std::ifstream file;

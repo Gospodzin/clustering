@@ -11,6 +11,11 @@
 template<typename T>
 class Subclu : Algorithm {
 public:
+	long time1D = 0;
+	long timeNGt1D = 0;
+	long count1D = 0;
+	long countNGt1D = 0;
+
 	Subclu(std::vector<Point>* data, Params params) : data(*data), eps(params.eps), mi(params.mi), dataSetParams(params.dataSetParams), odc(params.odc) {}
 
 	DataSet::Params dataSetParams;
@@ -47,7 +52,7 @@ private:
 			Clusters clusters;
 			if(odc) {
 				ODC odc(&data, eps, mi, a);
-				odc.compute();
+				long start = clock(); odc.compute(); time1D += clock() - start; ++count1D;
 				clusters = odc.getClusters().begin()->second;
 				odc.clean();
 			}
@@ -55,7 +60,7 @@ private:
 				std::vector<Point> subspaceData = extractSubspace(data, subspace);
 				T dataSet(&subspaceData, dataSetParams);
 				Dbscan<T> dbscan(&dataSet, {eps, mi});
-				dbscan.compute();
+				long start = clock(); dbscan.compute(); time1D += clock() - start; ++count1D;
 				idCache.resize(subspaceData.size());
 				std::iota(idCache.begin(), idCache.end(), subspaceData.front().id);
 				clusters = convert(dbscan.getClusters().begin()->second);
@@ -80,14 +85,14 @@ private:
 
 			// STEP 2.2 Test candidates and generate (k+1)-D clusters
 			for(Subspace cand : candidates) {
-                TS("Round for " + DataWriter::write(cand));
+				TS("Round for " + DataWriter::write(cand)); ++countNGt1D;
 				Subspace bestSub = minimalSubspace(cand, clustersBySubspace);
 				Clusters candClusters;
 				for(auto cluster : clustersBySubspace[bestSub]) {
-                    std::vector<Point> clusterData = utils::pca(extractSubspace(getData(cluster.second), cand));
+                    std::vector<Point> clusterData = extractSubspace(getData(cluster.second), cand);
 					T dataSet(&clusterData, dataSetParams);
 					Dbscan<T> dbscan(&dataSet, {eps, mi});
-					dbscan.compute();
+					long start = clock(); dbscan.compute(); timeNGt1D += clock() - start;
 					Clusters clusters = convert(dbscan.getClusters().begin()->second);
 					dbscan.clean();
 					candClusters.insert(clusters.begin(), clusters.end());

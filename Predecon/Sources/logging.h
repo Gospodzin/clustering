@@ -6,8 +6,10 @@
 
 namespace logging {
     struct Logger {
-        virtual void log(std::string val) {
-            std::cout << val << std::endl;
+		static int maxDepth;
+
+        virtual void log(std::string val, int depth) {
+			if(depth <= maxDepth) std::cout << std::string(depth, '>') << val << std::endl;
         }
     };
 
@@ -19,12 +21,12 @@ namespace logging {
 }
 
 #define LOG(m) \
-    logging::LOG::out->log(std::string(logging::LOG::ticks.size(), logging::LOG::indent) + m);
+    logging::LOG::out->log(m, logging::LOG::ticks.size());
 
 #define TS(m) \
-	logging::LOG::out->log(std::string(logging::LOG::ticks.size(), logging::LOG::indent) + m); \
+	logging::LOG::out->log(m, logging::LOG::ticks.size()); \
     logging::LOG::ticks.push(clock()); 
 
 #define TP(m) \
-    logging::LOG::out->log(std::string(logging::LOG::ticks.size() - 1, logging::LOG::indent) + std::string(m) + ": " + std::to_string(double(clock() - logging::LOG::ticks.top())/ CLOCKS_PER_SEC)); \
+    logging::LOG::out->log(std::string(m) + ": " + std::to_string(double(clock() - logging::LOG::ticks.top())/ CLOCKS_PER_SEC), logging::LOG::ticks.size() - 1); \
     logging::LOG::ticks.pop();
