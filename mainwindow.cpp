@@ -22,13 +22,16 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(ui->dataInfoTable->verticalHeader(), SIGNAL(sectionDoubleClicked(int)), this, SLOT(on_dataInfoTable_sectionDoubleClicked(int)));
     connect(&pcaThread, SIGNAL(done()), this, SLOT(pcaComputed()));
+    connect(&sampleThread, SIGNAL(done()), this, SLOT(sampleComputed()));
+    connect(&normalizeThread, SIGNAL(done()), this, SLOT(normalizationComputed()));
     connect(&statsThread, SIGNAL(done()), this, SLOT(statsComputed()));
     connect(&compThread, SIGNAL(computed()), this, SLOT(update()));
     connect(&loadThread, SIGNAL(loaded()), this, SLOT(dataLoaded()));
-    connect(&logger, SIGNAL(logSignal(QString)), this, SLOT(log(QString)));
+    connect(&logger, SIGNAL(logSignal(QString, int)), this, SLOT(log(QString, int)));
     connect(ui->plotView, SIGNAL(mousePress(QMouseEvent*)), this, SLOT(plotClick(QMouseEvent*)));
 
     ui->outputFileBox->setText(QDir::currentPath() + "/out.txt");
+    ui->dataManipulationFrame->setEnabled(false);
 }
 
 MainWindow::~MainWindow() {
@@ -38,10 +41,7 @@ MainWindow::~MainWindow() {
 void MainWindow::dataLoaded() {
     ui->loadButton->setEnabled(true);
     ui->computeButton->setEnabled(true);
-    ui->pcaButton->setEnabled(true);
-    ui->maxPcaButton->setEnabled(true);
-    ui->pcaDimsBox->setEnabled(true);
-    ui->undoPcaButton->setEnabled(true);
+    ui->dataManipulationFrame->setEnabled(true);
 
     statsThread.start(loadThread.data);
 }
@@ -57,6 +57,8 @@ void MainWindow::statsComputed() {
     std::vector<int> dims(statsThread.data->dimensions());
     std::iota(dims.begin(), dims.end(), 0);
     fillStatsTable(dims);
+
+    ui->dataManipulationFrame->setEnabled(true);
 }
 
 
@@ -64,8 +66,16 @@ void MainWindow::pcaComputed() {
     statsThread.start(pcaThread.data);
 }
 
-void MainWindow::log(QString msg) {
-    ui->logBrowser->append(msg);
+void MainWindow::sampleComputed() {
+    statsThread.start(sampleThread.data);
+}
+
+void MainWindow::normalizationComputed() {
+    statsThread .start(normalizeThread.data);
+}
+
+void MainWindow::log(QString msg, int depth) {
+    if(loggingEnabled && depth <= maxLoggingDepth) ui->logBrowser->append(QString::fromStdString(std::string(depth, '>')) + msg);
 }
 
 void MainWindow::update() {
@@ -90,7 +100,7 @@ void MainWindow::update() {
 void MainWindow::updateStats() {
     ui->outputBrowser->clear();
     ui->outputBrowser->append(QString::fromStdString(DataWriter::write(compThread.totalTime)));
-    ui->outputBrowser->append(QString::fromStdString(DataWriter::writeStats(compThread.result)));
+    ui->outputBrowser->append(QString::fromStdString(DataWriter::writeStats(compThread.result, compThread.data->size())));
     if(ui->writeOutCheckBox->isChecked()) {
         ui->outputBrowser->append("--------------");
         ui->outputBrowser->append(QString::fromStdString(DataWriter::write(compThread.result)));
@@ -191,7 +201,7 @@ void MainWindow::selectPoint(QMouseEvent* mouseEvent) {
 
     if(minP != NULL) {
         std::stringstream ss;
-        ss<<"Select -> X:" << (xAttr == -1 ? 0 : minP->at(xAttr)) << " Y:" << (yAttr == -1 ? 0 : minP->at(yAttr)) << " CID:" << minP->cid << " PID:" << minP->id;
+        ss<<"Select -> X:" << (xAttr == -1 ? 0 : minP->at(xAttr)) << " Y:" << (yAttr == -1 ? 0 : minP->at(yAttr)) << " CID:" << minP->cid << " PID:" << minP->id << " T:" << minP->type;
         LOG(ss.str());
 
         selectedPoint = minP;
@@ -325,6 +335,7 @@ Settings MainWindow::collectSettings() {
     std::string path = ui->dataFileBox->text().toStdString();
     bool odc = ui->odcCheckBox->isChecked();
     QString n = ui->nBox->text();
+    QString divs = ui->divsBox->text();
 
     Settings sets;
 
@@ -342,8 +353,9 @@ Settings MainWindow::collectSettings() {
     else if(dataStructure == "VaFile") sets.dataStructure = DataStructure::VaFile;
     else {QMessageBox::warning(NULL, "Warning!", "No such data structure!"); throw -1;}
 
-    if(measure == "EUCLIDEAN") sets.measure = Measure::EUCLIDEAN;
-    else if(measure == "MANHATTAN") sets.measure = Measure::MANHATTAN;
+    if(measure == "Euclidean") sets.measure = Measure::Euclidean;
+    else if(measure == "Manhattan") sets.measure = Measure::Manhattan;
+    else if(measure == "CosDist") sets.measure = Measure::CosDist;
     else {QMessageBox::warning(NULL, "Warning!", "No such measure!"); throw -1;}
 
     bool ok;
@@ -371,6 +383,11 @@ Settings MainWindow::collectSettings() {
     if(ok) sets.n = tmpI;
     else {QMessageBox::warning(NULL, "Warning!", "Bad n value!"); throw -1;}
 
+    tmpI = divs.toInt(&ok);
+    if(ok) sets.divs = tmpI;
+    else {QMessageBox::warning(NULL, "Warning!", "Bad divs value!"); throw -1;}
+
+
     return sets;
 }
 
@@ -392,6 +409,15 @@ void MainWindow::on_algorithmSelect_currentTextChanged(const QString &val)
         ui->odcCheckBox->setEnabled(true);
     } else {
         ui->odcCheckBox->setEnabled(false);
+    }
+
+    if(val.toStdString() == "QSCAN") {
+        ui->divsBox->setEnabled(true);
+        ui->dataStructureSelect->setCurrentText("PL");
+        ui->dataStructureSelect->setEnabled(false);
+    } else {
+        ui->divsBox->setEnabled(false);
+        ui->dataStructureSelect->setEnabled(true);
     }
 }
 
@@ -440,7 +466,6 @@ void MainWindow::on_dataInfoTable_sectionDoubleClicked(int logicalIndex){
     ui->dataInfoTable->setColumnCount(statsThread.data->dimensions());
     std::vector<int> dims(statsThread.data->dimensions());
     std::iota(dims.begin(), dims.end(), 0);
-    LOG(std::to_string(logicalIndex));
     if(logicalIndex == 1) std::sort(dims.begin(), dims.end(), [&](int d1, int d2) { return statsThread.meanDeviations[d1] > statsThread.meanDeviations[d2];});
     if(logicalIndex == 2) std::sort(dims.begin(), dims.end(), [&](int d1, int d2) { return statsThread.standardDeviations[d1] > statsThread.standardDeviations[d2];});
     fillStatsTable(dims);
@@ -452,14 +477,27 @@ void MainWindow::fillStatsTable(std::vector<int> dims) {
         ui->dataInfoTable->setItem(1, i, new QTableWidgetItem(QString::number(statsThread.meanDeviations[dims[i]])));
         ui->dataInfoTable->setItem(2, i, new QTableWidgetItem(QString::number(statsThread.standardDeviations[dims[i]])));
         ui->dataInfoTable->setItem(3, i, new QTableWidgetItem(QString::number(statsThread.means[dims[i]])));
-        ui->dataInfoTable->setItem(4, i, new QTableWidgetItem(QString::number(statsThread.mins[dims[i]])));
-        ui->dataInfoTable->setItem(5, i, new QTableWidgetItem(QString::number(statsThread.maxs[dims[i]])));
+        ui->dataInfoTable->setItem(4, i, new QTableWidgetItem(QString::number(statsThread.medians[dims[i]])));
+        ui->dataInfoTable->setItem(5, i, new QTableWidgetItem(QString::number(statsThread.mins[dims[i]])));
+        ui->dataInfoTable->setItem(6, i, new QTableWidgetItem(QString::number(statsThread.maxs[dims[i]])));
     }
 }
 
 void MainWindow::on_dataStructureSelect_currentTextChanged(const QString &val) {
-    if(val.toStdString() == "SegTree" || val.toStdString() == "PL" || val.toStdString() == "VaFile") ui->nBox->setEnabled(true);
-    else ui->nBox->setEnabled(false);
+    if(val.toStdString() == "SegTree"
+            || val.toStdString() == "PL"
+            || val.toStdString() == "VaFile") {
+        ui->nBox->setEnabled(true);
+    }
+    else {
+        ui->nBox->setEnabled(false);
+    }
+
+    if(val.toStdString() == "TI" || val.toStdString() == "MTI") {
+        ui->autoRefList->setEnabled(true);
+    } else {
+        ui->autoRefList->setEnabled(false);
+    }
 }
 
 void MainWindow::on_browseOutputButton_clicked() {
@@ -479,7 +517,10 @@ void MainWindow::keyPressEvent(QKeyEvent* e) {
 void MainWindow::on_pcaButton_clicked() {
     bool ok;
     int dims = ui->pcaDimsBox->text().toInt(&ok);
-    if(ok) pcaThread.start(loadThread.data, dims);
+    if(ok) {
+        ui->dataManipulationFrame->setEnabled(false);
+        pcaThread.start(statsThread.data, dims);
+    }
 }
 
 void MainWindow::on_undoPcaButton_clicked() {
@@ -487,5 +528,43 @@ void MainWindow::on_undoPcaButton_clicked() {
 }
 
 void MainWindow::on_maxPcaButton_clicked() {
-    ui->pcaDimsBox->setText(QString::number(loadThread.data->dimensions()));
+    ui->pcaDimsBox->setText(QString::number(statsThread.data->dimensions()));
+}
+
+void MainWindow::on_checkBox_toggled(bool checked) {
+    loggingEnabled = checked;
+}
+
+void MainWindow::on_maxDepthSpinBox_valueChanged(const QString &arg1) {
+    maxLoggingDepth = arg1.toInt();
+}
+
+void MainWindow::on_maxSampleButton_clicked() {
+    ui->sampleSizeBox->setText(QString::number(statsThread.data->size()));
+    ui->sampleDimsBox->setText(QString::number(statsThread.data->dimensions()));
+}
+
+void MainWindow::on_sampleButton_clicked() {
+    bool ok;
+    int size = ui->sampleSizeBox->text().toInt(&ok);
+    if(!ok) return;
+    int dims = ui->sampleDimsBox->text().toInt(&ok);
+    if(!ok) return;
+    int seed = ui->sampleSeedBox->text().toInt(&ok);
+    if(!ok) seed = time(NULL);
+
+    ui->dataManipulationFrame->setEnabled(false);
+    sampleThread.start(statsThread.data, size, dims, seed);
+}
+
+void MainWindow::on_normalize_clicked() {
+    normalizeThread.start(statsThread.data, utils::normalized);
+}
+
+void MainWindow::on_dimnormalize_clicked(){
+    normalizeThread.start(statsThread.data, utils::dimNormalized);
+}
+
+void MainWindow::on_removenoise_clicked() {
+    normalizeThread.start(statsThread.data, utils::removeNoise);
 }

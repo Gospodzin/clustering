@@ -9,6 +9,8 @@
 #include "computationthread.h"
 #include "datastatsthread.h"
 #include "pcathread.h"
+#include "samplethread.h"
+#include "normalizethread.h"
 #include "loaddatathread.h"
 #include "guilogger.h"
 #include "qcustomplot.h"
@@ -36,7 +38,9 @@ private slots:
     void dataLoaded();
     void statsComputed();
     void pcaComputed();
-    void log(QString msg);
+    void sampleComputed();
+    void normalizationComputed();
+    void log(QString msg, int depth);
     void plotClick(QMouseEvent* mouseEvent);
 
     void on_terminateButton_clicked();
@@ -60,13 +64,31 @@ private slots:
 
     void on_maxPcaButton_clicked();
 
+    void on_checkBox_toggled(bool checked);
+
+    void on_maxDepthSpinBox_valueChanged(const QString &arg1);
+
+    void on_maxSampleButton_clicked();
+
+    void on_sampleButton_clicked();
+
+    void on_normalize_clicked();
+
+    void on_dimnormalize_clicked();
+
+    void on_removenoise_clicked();
+
 private:
     ComputationThread compThread;
     LoadDataThread loadThread;
     DataStatsThread statsThread;
     PcaThread pcaThread;
+    SampleThread sampleThread;
+    NormalizeThread normalizeThread;
 
     GuiLogger logger;
+    bool loggingEnabled = true;
+    int maxLoggingDepth = 5;
     std::map<std::string, Subspace> stringToSubspace;
 
     bool selectRefPoint = false;

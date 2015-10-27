@@ -20,6 +20,7 @@ public:
     std::vector<double> mins;
     std::vector<double> maxs;
     std::vector<double> means;
+    std::vector<double> medians;
     std::vector<double> meanDeviations;
     std::vector<double> standardDeviations;
 
@@ -34,6 +35,7 @@ private:
     void run() {
         long start = clock();
         means = utils::calcMeans(*data);
+        medians = utils::calcMedians(*data);
         meanDeviations = utils::calcMeanDeviations(*data);
         standardDeviations = utils::calcStandardDeviations(*data);
         mins = referenceSelectors::min(*data);

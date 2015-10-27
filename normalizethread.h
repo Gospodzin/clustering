@@ -5,31 +5,29 @@
 #include <memory>
 
 #include "DataLoader.h"
-#include "settings.h"
 #include "utils.h"
-#include "referenceSelectors.h"
 
-class PcaThread : public QThread
+class NormalizeThread : public QThread
 {
     Q_OBJECT
 signals:
     void done();
 public:
     std::shared_ptr<Data> data;
-    size_t dims;
+    Data* (*transformation)(std::vector<Point>&);
 
     double totalTime;
 
-    void start(std::shared_ptr<Data> data, size_t dims) {
+    void start(std::shared_ptr<Data> data, Data* (*transformation)(std::vector<Point>&)) {
         this->data = data;
-        this->dims = dims;
+        this->transformation = transformation;
         QThread::start();
     }
 
 private:
     void run() {
         long start = clock();
-        data = std::shared_ptr<Data>(utils::pca(*data, dims));
+        data = std::shared_ptr<Data>(transformation(*data));
         totalTime = double(clock() - start) / CLOCKS_PER_SEC;
         emit done();
     }

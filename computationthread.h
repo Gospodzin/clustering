@@ -47,10 +47,12 @@ private:
 
     measures::MeasureId getMeasureId(Measure measure) {
         switch(measure) {
-        case EUCLIDEAN:
+        case Euclidean:
             return measures::MeasureId::Euclidean;
-        case MANHATTAN:
+        case Manhattan:
             return measures::MeasureId::Manhattan;
+        case CosDist:
+            return measures::MeasureId::CosDist;
         default:
             throw -1;
         }
@@ -58,7 +60,7 @@ private:
 
     void runQscan(std::vector<Point>* data, Settings sets) {
         long start = clock();
-        Qscan qscan(data, sets.eps, sets.mi);
+        Qscan qscan(data, sets.eps, sets.mi, sets.n, sets.divs);
         qscan.compute();
         result = qscan.getClusters();
         qscan.clean();

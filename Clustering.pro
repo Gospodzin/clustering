@@ -15,7 +15,6 @@ CONFIG += static
 
 SOURCES += main.cpp \
         mainwindow.cpp \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/AlgorithmTester.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/DataLoader.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/DataWriter.cpp \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/logging.cpp \
@@ -32,7 +31,6 @@ HEADERS +=     mainwindow.h \
              settings.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/utils.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/algorithms.h \
-    ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/AlgorithmTester.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/BasicDataSet.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/Cluster.h \
     ../../../Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources/clustering.h \
@@ -63,7 +61,9 @@ HEADERS +=     mainwindow.h \
     loaddatathread.h \
     qcustomplot/qcustomplot.h \
     datastatsthread.h \
-    pcathread.h
+    pcathread.h \
+    samplethread.h \
+    normalizethread.h
 
 INCLUDEPATH += C:/Utils/boost_1_55_0 \
             C:/Users/Gospo/Desktop/Praca_Magisterska/impl/Predecon/Predecon/Sources \

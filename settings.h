@@ -19,8 +19,9 @@ enum DataStructure {
 };
 
 enum Measure {
-    EUCLIDEAN,
-    MANHATTAN
+    Euclidean,
+    Manhattan,
+    CosDist
 };
 
 struct Settings {
@@ -34,6 +35,7 @@ struct Settings {
     std::string path;
     bool odc;
     int n;
+    int divs;
 };
 
 class MainWindow;
